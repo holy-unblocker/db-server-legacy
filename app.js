@@ -1,7 +1,13 @@
 import { Command, Option } from 'commander';
 import { GAME_TYPES } from './Objects.js';
 import server from './cli/server.js';
-import { create_game, delete_game, show_game, list_games } from './cli/util.js';
+import {
+	create_game,
+	delete_game,
+	show_game,
+	list_games,
+	update_game,
+} from './cli/util.js';
 
 const program = new Command();
 
@@ -17,11 +23,20 @@ program
 
 program
 	.command('create-game')
-	.argument('name')
+	.addOption(new Option('-n, --name <name>'))
 	.addOption(new Option(`-c, --category <category>`))
 	.addOption(new Option(`-t, --type <${GAME_TYPES}>`))
 	.addOption(new Option(`-s, --src <url>`))
 	.action(create_game);
+
+program
+	.command('update-game')
+	.argument('id')
+	.option('-n, --name <name>')
+	.option(`-c, --category <category>`)
+	.option(`-t, --type <${GAME_TYPES}>`)
+	.option(`-s, --src <url>`)
+	.action(update_game);
 
 program.command('show-game').argument('id').action(show_game);
 

@@ -16,8 +16,7 @@ export default class Server {
 		 */
 		this.db = await Database.open(join(__dirname, 'server.db'));
 
-		await this.db.run(`
-		CREATE TABLE IF NOT EXISTS games (
+		await this.db.run(`CREATE TABLE IF NOT EXISTS games (
 			id TEXT PRIMARY KEY NOT NULL UNIQUE,
 			name TEXT NOT NULL,
 			category TEXT NOT NULL,
@@ -26,19 +25,16 @@ export default class Server {
 			plays NUMBER NOT NULL,
 			favorites NUMBER NOT NULL,
 			retention NUMBER NOT NULL
-		);
-		`);
+		);`);
 	}
 	/**
 	 *
 	 * @param {number} index
-	 * @returns {Game}
+	 * @returns {import('./Objects.js').Game}
 	 */
 	async id_at_index(index) {
 		const result = await this.db.get(
-			`
-		SELECT id FROM games LIMIT 1 OFFSET $index
-		`,
+			`SELECT id FROM games LIMIT 1 OFFSET $index;`,
 			{
 				$index: index,
 			}
@@ -53,13 +49,11 @@ export default class Server {
 	/**
 	 *
 	 * @param {string} id
-	 * @returns {Game}
+	 * @returns {import('./Objects.js').Game}
 	 */
 	async show_game(id) {
 		const result = await this.db.get(
-			`
-		SELECT * FROM games WHERE id = $id
-		`,
+			`SELECT * FROM games WHERE id = $id`,
 			game_to_query({
 				id,
 			})
@@ -73,7 +67,7 @@ export default class Server {
 	}
 	/**
 	 * @param {string} [category]
-	 * @returns {Game[]}
+	 * @returns {import('./Objects.js').Game[]}
 	 */
 	async list_games(category) {
 		const games = [];
@@ -99,9 +93,7 @@ export default class Server {
 	 */
 	async delete_game(id) {
 		const { changes } = await this.db.run(
-			`
-		DELETE FROM games WHERE id = $id;
-		`,
+			`DELETE FROM games WHERE id = $id;`,
 			game_to_query({
 				id,
 			})
@@ -114,7 +106,8 @@ export default class Server {
 	 * @param {string} name
 	 * @param {string} type
 	 * @param {string} src
-	 * @returns {Game}
+	 * @param {string} category
+	 * @returns {import('./Objects.js').Game}
 	 */
 	async add_game(name, type, src, category) {
 		const game = query_to_game({
@@ -129,9 +122,49 @@ export default class Server {
 		});
 
 		await this.db.run(
-			`
-		INSERT INTO games (id, name, type, category, src, plays, retention, favorites) VALUES($id, $name, $type, $category, $src, $plays, $retention, $favorites);
-		`,
+			`INSERT INTO games (id, name, type, category, src, plays, retention, favorites) VALUES($id, $name, $type, $category, $src, $plays, $retention, $favorites);`,
+			game_to_query(game)
+		);
+
+		return game;
+	}
+	/**
+	 *
+	 * @param {string} id
+	 * @param {string} [name]
+	 * @param {string} [type]
+	 * @param {string} [src]
+	 * @param {string} [category]
+	 */
+	async update_game(id, name, type, src, category) {
+		let game = await this.show_game(id);
+
+		if (name === undefined) {
+			name = game.name;
+		}
+
+		if (type === undefined) {
+			type = game.type;
+		}
+
+		if (src === undefined) {
+			src = game.src;
+		}
+
+		if (category === undefined) {
+			category = game.category;
+		}
+
+		game = query_to_game({
+			id,
+			name,
+			type,
+			category,
+			src,
+		});
+
+		await this.db.run(
+			`UPDATE games SET name = $name, type = $type, category = $category, src = $src WHERE id = $id`,
 			game_to_query(game)
 		);
 

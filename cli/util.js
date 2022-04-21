@@ -62,7 +62,19 @@ export async function delete_game(id) {
 	}
 }
 
-export async function create_game(name, { type, src, category }) {
+export async function update_game(id, { name, type, src, category }) {
+	const server = new Server();
+
+	await server.open;
+
+	id = await resolve_id(server, id);
+
+	const game = await server.update_game(id, name, type, src, category);
+
+	console.log(`Updated game.`);
+}
+
+export async function create_game({ name, type, src, category }) {
 	const server = new Server();
 
 	await server.open;
