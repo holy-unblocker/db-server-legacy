@@ -28,6 +28,7 @@ export default function server({ port, host }) {
 				type: 'object',
 				properties: {
 					leastGreatest: { type: 'string' },
+					sort: { type: 'string' },
 					category: { type: 'string' },
 				},
 			},
