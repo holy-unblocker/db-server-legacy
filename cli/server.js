@@ -4,6 +4,10 @@ import HTTPErrors from 'http-errors';
 
 const NOT_EXIST = /Game with ID .*? doesn't exist/;
 
+/*
+/games/ - list
+*/
+
 export default function server({ port, host }) {
 	const server = new Server();
 	const fastify = Fastify();
@@ -11,17 +15,28 @@ export default function server({ port, host }) {
 	fastify.route({
 		url: '/games/',
 		method: 'GET',
+		schema: {
+			querystring: {
+				type: 'object',
+				properties: {
+					leastGreatest: { type: 'string' },
+					category: { type: 'string' },
+				},
+			},
+		},
 		async handler(request, reply) {
-			const games = await server.list_games();
+			const games = await server.list_games(request.query.category);
 			const send = [];
 
-			let lg = 'least-greatest' in request.query;
+			let lg = 'leastGreatest' in request.query;
 
 			switch (request.query.sort) {
 				case 'favorites':
 					games.sort((a, b) => {
 						if (lg) {
+							const c = a;
 							a = b;
+							b = c;
 						}
 
 						return b.favorites - a.favorites;
@@ -30,7 +45,9 @@ export default function server({ port, host }) {
 				case 'plays':
 					games.sort((a, b) => {
 						if (lg) {
+							const c = a;
 							a = b;
+							b = c;
 						}
 
 						return b.plays - a.plays;
@@ -39,7 +56,9 @@ export default function server({ port, host }) {
 				case 'retention':
 					games.sort((a, b) => {
 						if (lg) {
+							const c = a;
 							a = b;
+							b = c;
 						}
 
 						b.retention - a.retention;
