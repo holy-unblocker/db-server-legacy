@@ -12,6 +12,14 @@ export default function server({ port, host }) {
 	const server = new Server();
 	const fastify = Fastify();
 
+	function cors(request, reply) {
+		reply.header('access-control-allow-headers', '*');
+		reply.header('access-control-allow-origin', request.headers.origin || '*');
+		reply.header('access-control-allow-max-age', '600');
+		reply.header('access-control-allow-credentials', 'true');
+		reply.header('access-control-allow-methods', 'GET,POST,PUT,PATCH,DELETE');
+	}
+
 	fastify.route({
 		url: '/games/',
 		method: 'GET',
@@ -25,10 +33,12 @@ export default function server({ port, host }) {
 			},
 		},
 		async handler(request, reply) {
+			cors(request, reply);
+
 			const games = await server.list_games(request.query.category);
 			const send = [];
 
-			let lg = 'leastGreatest' in request.query;
+			let lg = request.query.leastGreatest === 'true';
 
 			switch (request.query.sort) {
 				case 'favorites':
@@ -82,6 +92,8 @@ export default function server({ port, host }) {
 		url: '/games/:id/',
 		method: 'GET',
 		async handler(request, reply) {
+			cors(request, reply);
+
 			try {
 				const info = await server.show_game(request.params.id);
 				reply.send(info);
