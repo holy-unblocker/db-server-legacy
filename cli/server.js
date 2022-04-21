@@ -51,6 +51,7 @@ export default function server({ port, host }) {
 				send.push({
 					name: game.name,
 					id: game.id,
+					category: game.category,
 				});
 			}
 
