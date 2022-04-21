@@ -28,7 +28,7 @@ async function resolve_id(server, i, confirm) {
 	}
 }
 
-export async function list_games({ category }) {
+export async function list_games(category) {
 	const server = new Server();
 
 	await server.open;

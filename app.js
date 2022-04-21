@@ -27,9 +27,6 @@ program.command('show-game').argument('id').action(show_game);
 
 program.command('delete-game').argument('id').action(delete_game);
 
-program
-	.command('list-games')
-	.option('-c, --category <category>')
-	.action(list_games);
+program.command('list-games').argument('[category]').action(list_games);
 
 program.parse(process.argv);
