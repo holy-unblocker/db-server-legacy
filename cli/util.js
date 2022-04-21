@@ -10,11 +10,13 @@ import Server from '../Server.js';
 async function resolve_id(server, i, confirm) {
 	if (!isNaN(i)) {
 		const id = await server.id_at_index(i);
+
+		if (confirm !== true) {
+			return id;
+		}
+
 		console.table(await server.show_game(id));
-		if (
-			confirm !== true ||
-			(await promptly.confirm('Is this the correct game? (y/n)'))
-		) {
+		if (await promptly.confirm('Is this the correct game? (y/n)')) {
 			return id;
 		} else {
 			process.exit();
