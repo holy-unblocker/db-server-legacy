@@ -1,12 +1,9 @@
 import Fastify from 'fastify';
 import Server from '../Server.js';
 import HTTPErrors from 'http-errors';
+import stringSimilarity from 'string-similarity';
 
 const NOT_EXIST = /Game with ID .*? doesn't exist/;
-
-/*
-/games/ - list
-*/
 
 export default function server({ port, host }) {
 	const server = new Server();
@@ -30,6 +27,7 @@ export default function server({ port, host }) {
 					leastGreatest: { type: 'string' },
 					sort: { type: 'string' },
 					category: { type: 'string' },
+					search: { type: 'string' },
 				},
 			},
 		},
@@ -39,19 +37,27 @@ export default function server({ port, host }) {
 			const games = await server.list_games(request.query.category);
 			const send = [];
 
-			switch (request.query.sort) {
-				case 'name':
-					games.sort((a, b) => b.name.charCodeAt(0) - a.name.charCodeAt(0));
-					break;
-				case 'favorites':
-					games.sort((a, b) => b.favorites - a.favorites);
-					break;
-				case 'plays':
-					games.sort((a, b) => b.plays - a.plays);
-					break;
-				case 'retention':
-					games.sort((a, b) => b.retention - a.retention);
-					break;
+			if (typeof request.query.search === 'string') {
+				games.sort(
+					(a, b) =>
+						stringSimilarity.compareTwoStrings(b.name, request.query.search) -
+						stringSimilarity.compareTwoStrings(a.name, request.query.search)
+				);
+			} else {
+				switch (request.query.sort) {
+					case 'name':
+						games.sort((a, b) => b.name.charCodeAt(0) - a.name.charCodeAt(0));
+						break;
+					case 'favorites':
+						games.sort((a, b) => b.favorites - a.favorites);
+						break;
+					case 'plays':
+						games.sort((a, b) => b.plays - a.plays);
+						break;
+					case 'retention':
+						games.sort((a, b) => b.retention - a.retention);
+						break;
+				}
 			}
 
 			if (request.query.leastGreatest === 'true') {
