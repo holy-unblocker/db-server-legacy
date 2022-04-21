@@ -11,9 +11,30 @@ export default function server({ port, host }) {
 	fastify.route({
 		url: '/games/',
 		method: 'GET',
-		async handler(_request, reply) {
+		async handler(request, reply) {
 			const games = await server.list_games();
-			reply.send(games);
+			const send = [];
+
+			switch (request.query.sort) {
+				case 'favorites':
+					games.sort((a, b) => b.favorites - a.favorites);
+					break;
+				case 'plays':
+					games.sort((a, b) => b.plays - a.plays);
+					break;
+				case 'retention':
+					games.sort((a, b) => b.retention - a.retention);
+					break;
+			}
+
+			for (let game of games) {
+				send.push({
+					name: game.name,
+					id: game.id,
+				});
+			}
+
+			reply.send(send);
 		},
 	});
 
@@ -25,7 +46,11 @@ export default function server({ port, host }) {
 				const info = await server.show_game(request.params.id);
 				reply.send(info);
 			} catch (error) {
-				throw new HTTPErrors.NotFound();
+				if (NOT_EXIST.test(error)) {
+					throw new HTTPErrors.NotFound();
+				} else {
+					throw error;
+				}
 			}
 		},
 	});
