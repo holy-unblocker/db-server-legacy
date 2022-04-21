@@ -71,14 +71,18 @@ export default class Server {
 		return query_to_game(result);
 	}
 	/**
-	 * @yields {Game}
+	 * @returns {Game[]}
 	 */
-	async *list_games() {
+	async list_games() {
+		const games = [];
+
 		for (let game of await this.db.all(`
 		SELECT * FROM games
 		`)) {
-			yield query_to_game(game);
+			games.push(query_to_game(game));
 		}
+
+		return games;
 	}
 	/**
 	 * @param {string} id

@@ -33,14 +33,7 @@ export async function list_games() {
 
 	await server.open;
 
-	const yield_games = await server.list_games();
-	const games = [];
-
-	for await (let game of yield_games) {
-		games.push(game);
-	}
-
-	console.table(games);
+	console.table(await server.list_games());
 }
 
 export async function show_game(id) {
