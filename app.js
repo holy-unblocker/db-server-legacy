@@ -17,7 +17,8 @@ program
 
 program
 	.command('create-game')
-	.addOption(new Option(`-n, --name <name>`))
+	.argument('name')
+	.addOption(new Option(`-c, --category <category>`))
 	.addOption(new Option(`-t, --type <${GAME_TYPES}>`))
 	.addOption(new Option(`-s, --src <url>`))
 	.action(create_game);
@@ -26,6 +27,9 @@ program.command('show-game').argument('id').action(show_game);
 
 program.command('delete-game').argument('id').action(delete_game);
 
-program.command('list-games').action(list_games);
+program
+	.command('list-games')
+	.option('-c, --category <category>')
+	.action(list_games);
 
 program.parse(process.argv);

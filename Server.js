@@ -20,6 +20,7 @@ export default class Server {
 		CREATE TABLE IF NOT EXISTS games (
 			id TEXT PRIMARY KEY NOT NULL UNIQUE,
 			name TEXT NOT NULL,
+			category TEXT NOT NULL,
 			type TEXT NOT NULL,
 			src TEXT NOT NULL,
 			plays NUMBER NOT NULL,
@@ -71,14 +72,23 @@ export default class Server {
 		return query_to_game(result);
 	}
 	/**
+	 * @param {string} [category]
 	 * @returns {Game[]}
 	 */
-	async list_games() {
+	async list_games(category) {
 		const games = [];
 
-		for (let game of await this.db.all(`
-		SELECT * FROM games
-		`)) {
+		let query;
+
+		if (typeof category === 'string') {
+			query = this.db.all(`SELECT * FROM games WHERE category = $category;`, {
+				$category: category,
+			});
+		} else {
+			query = this.db.all(`SELECT * FROM games;`);
+		}
+
+		for (let game of await query) {
 			games.push(query_to_game(game));
 		}
 
@@ -106,11 +116,12 @@ export default class Server {
 	 * @param {string} src
 	 * @returns {Game}
 	 */
-	async add_game(name, type, src) {
+	async add_game(name, type, src, category) {
 		const game = query_to_game({
 			id: Math.random().toString(36).slice(2),
 			name,
 			type,
+			category,
 			src,
 			plays: 0,
 			retention: 0,
@@ -119,7 +130,7 @@ export default class Server {
 
 		await this.db.run(
 			`
-		INSERT INTO games (id, name, type, src, plays, retention, favorites) VALUES($id, $name, $type, $src, $plays, $retention, $favorites);
+		INSERT INTO games (id, name, type, category, src, plays, retention, favorites) VALUES($id, $name, $type, $category, $src, $plays, $retention, $favorites);
 		`,
 			game_to_query(game)
 		);

@@ -28,12 +28,12 @@ async function resolve_id(server, i, confirm) {
 	}
 }
 
-export async function list_games() {
+export async function list_games({ category }) {
 	const server = new Server();
 
 	await server.open;
 
-	console.table(await server.list_games());
+	console.table(await server.list_games(category));
 }
 
 export async function show_game(id) {
@@ -62,12 +62,12 @@ export async function delete_game(id) {
 	}
 }
 
-export async function create_game({ name, type, src }) {
+export async function create_game(name, { type, src, category }) {
 	const server = new Server();
 
 	await server.open;
 
-	const game = await server.add_game(name, type, src);
+	const game = await server.add_game(name, type, src, category);
 
 	console.log(`Game created. ID: ${game.id.toString('hex')}`);
 }

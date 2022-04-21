@@ -51,6 +51,10 @@ export function game_to_query(game) {
 		query.$type = game.type;
 	}
 
+	if ('category' in game) {
+		query.$category = game.category;
+	}
+
 	if ('src' in game) {
 		if (typeof game.src !== 'string') {
 			throw new TypeError('Game src was not a string');
