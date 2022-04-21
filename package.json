@@ -1,0 +1,11 @@
+{
+	"name": "games-server",
+	"version": "1.0.0",
+	"type": "module",
+	"dependencies": {
+		"commander": "^9.2.0",
+		"fastify": "^3.28.0",
+		"promptly": "^3.2.0",
+		"sqlite-async": "^1.1.3"
+	}
+}
