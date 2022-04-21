@@ -39,42 +39,23 @@ export default function server({ port, host }) {
 			const games = await server.list_games(request.query.category);
 			const send = [];
 
-			let lg = request.query.leastGreatest === 'true';
-
 			switch (request.query.sort) {
+				case 'name':
+					games.sort((a, b) => b.name.charCodeAt(0) - a.name.charCodeAt(0));
+					break;
 				case 'favorites':
-					games.sort((a, b) => {
-						if (lg) {
-							const c = a;
-							a = b;
-							b = c;
-						}
-
-						return b.favorites - a.favorites;
-					});
+					games.sort((a, b) => b.favorites - a.favorites);
 					break;
 				case 'plays':
-					games.sort((a, b) => {
-						if (lg) {
-							const c = a;
-							a = b;
-							b = c;
-						}
-
-						return b.plays - a.plays;
-					});
+					games.sort((a, b) => b.plays - a.plays);
 					break;
 				case 'retention':
-					games.sort((a, b) => {
-						if (lg) {
-							const c = a;
-							a = b;
-							b = c;
-						}
-
-						b.retention - a.retention;
-					});
+					games.sort((a, b) => b.retention - a.retention);
 					break;
+			}
+
+			if (request.query.leastGreatest === 'true') {
+				games.reverse();
 			}
 
 			for (let game of games) {
