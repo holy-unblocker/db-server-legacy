@@ -15,15 +15,35 @@ export default function server({ port, host }) {
 			const games = await server.list_games();
 			const send = [];
 
+			let lg = 'least-greatest' in request.query;
+
 			switch (request.query.sort) {
 				case 'favorites':
-					games.sort((a, b) => b.favorites - a.favorites);
+					games.sort((a, b) => {
+						if (lg) {
+							a = b;
+						}
+
+						return b.favorites - a.favorites;
+					});
 					break;
 				case 'plays':
-					games.sort((a, b) => b.plays - a.plays);
+					games.sort((a, b) => {
+						if (lg) {
+							a = b;
+						}
+
+						return b.plays - a.plays;
+					});
 					break;
 				case 'retention':
-					games.sort((a, b) => b.retention - a.retention);
+					games.sort((a, b) => {
+						if (lg) {
+							a = b;
+						}
+
+						b.retention - a.retention;
+					});
 					break;
 			}
 
