@@ -22,7 +22,7 @@ export default class Server {
 			category TEXT NOT NULL,
 			type TEXT NOT NULL,
 			src TEXT NOT NULL,
-			plays NUMBER NOT NULL,
+			plays NUMBER NOT NULL
 		);`);
 	}
 	/**
