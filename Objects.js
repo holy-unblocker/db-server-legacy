@@ -13,7 +13,6 @@ export const GAME_TYPES = [
  * @property {string} name
  * @property {number} plays
  * @property {number} favorites
- * @property {number} retention
  */
 
 /**
@@ -77,14 +76,6 @@ export function game_to_query(game) {
 		}
 
 		query.$favorites = game.favorites;
-	}
-
-	if ('retention' in game) {
-		if (typeof game.retention !== 'number') {
-			throw new TypeError('Game retention was not a number');
-		}
-
-		query.$retention = game.retention;
 	}
 
 	return query;

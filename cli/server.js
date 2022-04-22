@@ -64,9 +64,6 @@ export default function server({ secret, port, host }) {
 					case 'plays':
 						games.sort((a, b) => b.plays - a.plays);
 						break;
-					case 'retention':
-						games.sort((a, b) => b.retention - a.retention);
-						break;
 				}
 			}
 
