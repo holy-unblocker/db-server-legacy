@@ -5,6 +5,7 @@
 	"dependencies": {
 		"commander": "^9.2.0",
 		"fastify": "^3.28.0",
+		"hcaptcha": "^0.1.1",
 		"http-errors": "^2.0.0",
 		"promptly": "^3.2.0",
 		"sqlite-async": "^1.1.3",
