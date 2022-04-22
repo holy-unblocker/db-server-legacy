@@ -23,7 +23,6 @@ export default class Server {
 			type TEXT NOT NULL,
 			src TEXT NOT NULL,
 			plays NUMBER NOT NULL,
-			favorites NUMBER NOT NULL,
 		);`);
 	}
 	/**
@@ -116,11 +115,10 @@ export default class Server {
 			category,
 			src,
 			plays: 0,
-			favorites: 0,
 		});
 
 		await this.db.run(
-			`INSERT INTO games (id, name, type, category, src, plays, favorites) VALUES($id, $name, $type, $category, $src, $plays, $favorites);`,
+			`INSERT INTO games (id, name, type, category, src, plays) VALUES($id, $name, $type, $category, $src, $plays);`,
 			game_to_query(game)
 		);
 

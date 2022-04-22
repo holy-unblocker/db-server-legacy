@@ -58,9 +58,6 @@ export default function server({ secret, port, host }) {
 					case 'name':
 						games.sort((a, b) => b.name.charCodeAt(0) - a.name.charCodeAt(0));
 						break;
-					case 'favorites':
-						games.sort((a, b) => b.favorites - a.favorites);
-						break;
 					case 'plays':
 						games.sort((a, b) => b.plays - a.plays);
 						break;
