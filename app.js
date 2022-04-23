@@ -22,7 +22,7 @@ program
 	.option(
 		'-s, --secret <string>',
 		'HCaptcha secret',
-		0x0000000000000000000000000000000000000000
+		'0x0000000000000000000000000000000000000000'
 	)
 	.action(server);
 
