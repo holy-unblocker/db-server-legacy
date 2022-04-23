@@ -34,10 +34,11 @@ export default function server({ secret, port, host }) {
 			querystring: {
 				type: 'object',
 				properties: {
-					leastGreatest: { type: 'string' },
+					leastGreatest: { type: 'boolean' },
 					sort: { type: 'string' },
 					category: { type: 'string' },
 					search: { type: 'string' },
+					limit: { type: 'number' },
 				},
 			},
 		},
@@ -47,12 +48,16 @@ export default function server({ secret, port, host }) {
 			const games = await server.list_games(request.query.category);
 			const send = [];
 
-			if (typeof request.query.search === 'string') {
+			if ('search' in request.query) {
 				games.sort(
 					(a, b) =>
 						stringSimilarity.compareTwoStrings(b.name, request.query.search) -
 						stringSimilarity.compareTwoStrings(a.name, request.query.search)
 				);
+
+				if ('limit' in request.query) {
+					games.splice(request.query.limit);
+				}
 			} else {
 				switch (request.query.sort) {
 					case 'name':
@@ -64,7 +69,7 @@ export default function server({ secret, port, host }) {
 				}
 			}
 
-			if (request.query.leastGreatest === 'true') {
+			if (request.query.leastGreatest === true) {
 				games.reverse();
 			}
 
@@ -102,6 +107,15 @@ export default function server({ secret, port, host }) {
 	fastify.route({
 		url: '/games/:id/plays',
 		method: 'PUT',
+		schema: {
+			querystring: {
+				type: 'object',
+				properties: {
+					token: { type: 'string' },
+				},
+				required: ['token'],
+			},
+		},
 		async handler(request, reply) {
 			cors(request, reply);
 
