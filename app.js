@@ -19,7 +19,11 @@ program
 	.addOption(
 		new Option('-p, --port <number>', 'Listening port').default(80).env('PORT')
 	)
-	.addOption(new Option('-s, --secret <string>', 'HCaptcha secret'))
+	.option(
+		'-s, --secret <string>',
+		'HCaptcha secret',
+		0x0000000000000000000000000000000000000000
+	)
 	.action(server);
 
 program
