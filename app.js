@@ -29,18 +29,18 @@ program
 program
 	.command('create-game')
 	.requiredOption('-n, --name <name>')
-	.requiredOption(`-c, --category <category>`)
+	.requiredOption('-c, --category <category>')
 	.requiredOption(`-t, --type <${GAME_TYPES}>`)
-	.requiredOption(`-s, --src <url>`)
+	.requiredOption('-s, --src <url>')
 	.action(create_game);
 
 program
 	.command('update-game')
 	.argument('id')
 	.option('-n, --name <name>')
-	.option(`-c, --category <category>`)
+	.option('-c, --category <category>')
 	.option(`-t, --type <${GAME_TYPES}>`)
-	.option(`-s, --src <url>`)
+	.option('-s, --src <url>')
 	.action(update_game);
 
 program.command('show-game').argument('id').action(show_game);
