@@ -1,4 +1,4 @@
-import { Command, Option } from 'commander';
+import { Command } from 'commander';
 import { GAME_TYPES } from './Objects.js';
 import server from './cli/server.js';
 import {
@@ -13,11 +13,11 @@ const program = new Command();
 
 program
 	.command('server')
-	.addOption(
-		new Option('-h, --host <string>', 'Listening host').default('localhost')
-	)
-	.addOption(
-		new Option('-p, --port <number>', 'Listening port').default(80).env('PORT')
+	.option('-h, --host <string>', 'Listening host', 'localhost')
+	.option(
+		'-p, --port <number>',
+		'Listening port',
+		'PORT' in process.env ? process.env.PORT : 80
 	)
 	.option(
 		'-s, --secret <string>',
@@ -28,10 +28,10 @@ program
 
 program
 	.command('create-game')
-	.addOption(new Option('-n, --name <name>'))
-	.addOption(new Option(`-c, --category <category>`))
-	.addOption(new Option(`-t, --type <${GAME_TYPES}>`))
-	.addOption(new Option(`-s, --src <url>`))
+	.requiredOption('-n, --name <name>')
+	.requiredOption(`-c, --category <category>`)
+	.requiredOption(`-t, --type <${GAME_TYPES}>`)
+	.requiredOption(`-s, --src <url>`)
 	.action(create_game);
 
 program
