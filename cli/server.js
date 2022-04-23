@@ -6,6 +6,9 @@ import hcaptcha from 'hcaptcha';
 
 const NOT_EXIST = /Game with ID .*? doesn't exist/;
 
+const alphabet =
+	'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
 export default function server({ secret, port, host }) {
 	const server = new Server();
 	const fastify = Fastify();
@@ -61,7 +64,10 @@ export default function server({ secret, port, host }) {
 			} else {
 				switch (request.query.sort) {
 					case 'name':
-						games.sort((a, b) => b.name.charCodeAt(0) - a.name.charCodeAt(0));
+						games.sort(
+							(a, b) =>
+								alphabet.indexOf(b.name[0]) - alphabet.indexOf(a.name[0])
+						);
 						break;
 					case 'plays':
 						games.sort((a, b) => b.plays - a.plays);
@@ -127,7 +133,7 @@ export default function server({ secret, port, host }) {
 
 			try {
 				await server.db.run(
-					`UPDATE games SET plays = plays + 1 WHERE id = $id`,
+					'UPDATE games SET plays = plays + 1 WHERE id = $id',
 					{
 						$id: request.params.id,
 					}

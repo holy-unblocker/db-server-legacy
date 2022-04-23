@@ -12,6 +12,7 @@
 		"string-similarity": "^4.0.4"
 	},
 	"devDependencies": {
+		"eslint-config-prettier": "^8.5.0",
 		"husky": "^7.0.4",
 		"lint-staged": "^12.3.7"
 	},
