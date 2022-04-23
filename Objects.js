@@ -2,6 +2,7 @@ export const GAME_TYPES = [
 	'emulator.nes',
 	'emulator.gba',
 	'emulator.genesis',
+	'flash',
 	'embed',
 	'proxy',
 ];
