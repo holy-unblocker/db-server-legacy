@@ -1,17 +1,17 @@
 import Fastify from 'fastify';
 import Server from '../Server.js';
 import HTTPErrors from 'http-errors';
-import stringSimilarity from 'string-similarity';
 import hcaptcha from 'hcaptcha';
 
 const NOT_EXIST = /Game with ID .*? doesn't exist/;
 
-const alphabet =
-	'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-
 export default function server({ secret, port, host }) {
 	const server = new Server();
-	const fastify = Fastify();
+	const fastify = Fastify({
+		logger: {
+			level: 'error',
+		},
+	});
 
 	function cors(request, reply) {
 		reply.header('access-control-allow-headers', '*');
@@ -42,42 +42,15 @@ export default function server({ secret, port, host }) {
 					category: { type: 'string' },
 					search: { type: 'string' },
 					limit: { type: 'number' },
+					limitPerCategory: { type: 'number' },
 				},
 			},
 		},
 		async handler(request, reply) {
 			cors(request, reply);
 
-			const games = await server.games.list_games(request.query.category);
+			const games = await server.games.list_games(request.query);
 			const send = [];
-
-			if ('search' in request.query) {
-				games.sort(
-					(a, b) =>
-						stringSimilarity.compareTwoStrings(b.name, request.query.search) -
-						stringSimilarity.compareTwoStrings(a.name, request.query.search)
-				);
-
-				if ('limit' in request.query) {
-					games.splice(request.query.limit);
-				}
-			} else {
-				switch (request.query.sort) {
-					case 'name':
-						games.sort(
-							(a, b) =>
-								alphabet.indexOf(b.name[0]) - alphabet.indexOf(a.name[0])
-						);
-						break;
-					case 'plays':
-						games.sort((a, b) => b.plays - a.plays);
-						break;
-				}
-			}
-
-			if (request.query.leastGreatest === true) {
-				games.reverse();
-			}
 
 			for (let game of games) {
 				send.push({

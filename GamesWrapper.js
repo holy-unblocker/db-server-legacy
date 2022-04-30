@@ -119,27 +119,74 @@ export default class GamesWrapper {
 		return query_to_game(result);
 	}
 	/**
-	 * @param {string} [category]
+	 *
+	 * @typedef {object} ListGamesOptions
+	 * @property {'name'|'plays'|'search'} [sort]
+	 * @property {boolean} [reverse]
+	 * @property {boolean} [leastGreatest]
+	 * @property {number} [limit]
+	 * @property {number} [limitPerCategory]
+	 * @property {string} [search]
+	 */
+	/**
+	 * @param {ListGamesOptions} [options]
 	 * @returns {import('./Objects.js').Game[]}
 	 */
-	async list_games(category) {
+	async list_games(options) {
 		const games = [];
 
-		let query;
+		// 0: select, 1: condition, 2: order, 3: limit
+		const select = ['SELECT * FROM games a'];
+		const conditions = [];
+		const vars = {};
 
-		if (typeof category === 'string') {
-			query = this.server.db.all(
-				'SELECT * FROM games WHERE category = $category;',
-				{
-					$category: category,
-				}
-			);
-		} else {
-			query = this.server.db.all('SELECT * FROM games;');
+		if (typeof options.category === 'string') {
+			conditions.push('category = $category');
+			vars.$category = options.category;
 		}
 
-		for (let game of await query) {
+		if (typeof options.limitPerCategory === 'number') {
+			conditions.push(
+				`(SELECT COUNT(*) FROM games b WHERE category = a."category" AND a."ROWID" < b."ROWID") < ${options.limitPerCategory} - 1`
+			);
+		}
+
+		switch (options.sort) {
+			case 'name':
+				select[2] = 'ORDER BY name';
+				break;
+			case 'plays':
+				select[2] = 'ORDER BY plays';
+				break;
+			case 'search':
+				if (typeof options.search === 'string') {
+					select[2] = 'ORDER BY 1 - instr(UPPER(name), $search)';
+					vars.$search = options.search.toUpperCase();
+				}
+				break;
+		}
+
+		if (conditions.length !== 0) {
+			select[1] = `WHERE ${conditions}`;
+		}
+
+		if (typeof options.limit === 'number') {
+			select[3] = `LIMIT ${options.limit}`;
+		}
+
+		// console.log(select.join(' '));
+
+		const query = await this.server.db.all(
+			select.filter(str => str).join(' '),
+			vars
+		);
+
+		for (let game of query) {
 			games.push(query_to_game(game));
+		}
+
+		if (options.leastGreatest === true) {
+			games.reverse();
 		}
 
 		return games;
