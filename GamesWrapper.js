@@ -156,7 +156,7 @@ export default class GamesWrapper {
 				select[2] = 'ORDER BY name';
 				break;
 			case 'plays':
-				select[2] = 'ORDER BY plays';
+				select[2] = 'ORDER BY plays, name';
 				break;
 			case 'search':
 				if (typeof options.search === 'string') {
