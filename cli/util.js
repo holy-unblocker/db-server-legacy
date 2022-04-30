@@ -33,7 +33,7 @@ export async function list_games(category) {
 
 	await server.open;
 
-	console.table(await server.list_games(category));
+	console.table(await server.games.list_games(category));
 }
 
 export async function show_game(id) {
@@ -43,7 +43,7 @@ export async function show_game(id) {
 
 	id = await resolve_id(server, id);
 
-	console.table(await server.show_game(id));
+	console.table(await server.games.show_game(id));
 }
 
 export async function delete_game(id) {
@@ -53,7 +53,7 @@ export async function delete_game(id) {
 
 	id = await resolve_id(server, id, true);
 
-	const deleted = await server.delete_game(id);
+	const deleted = await server.games.delete_game(id);
 
 	if (deleted) {
 		console.log(`Game deleted.`);
@@ -69,7 +69,7 @@ export async function update_game(id, { name, type, src, category }) {
 
 	id = await resolve_id(server, id);
 
-	const game = await server.update_game(id, name, type, src, category);
+	const game = await server.games.update_game(id, name, type, src, category);
 
 	console.log(`Updated game.`);
 }
@@ -79,7 +79,7 @@ export async function create_game({ name, type, src, category }) {
 
 	await server.open;
 
-	const game = await server.add_game(name, type, src, category);
+	const game = await server.games.create_game(name, type, src, category);
 
 	console.log(`Game created. ID: ${game.id.toString('hex')}`);
 }

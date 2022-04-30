@@ -212,7 +212,7 @@ export default class GamesWrapper {
 	 * @param {string} category
 	 * @returns {import('./Objects.js').Game}
 	 */
-	async add_game(name, type, src, category) {
+	async create_game(name, type, src, category) {
 		const game = query_to_game({
 			id: Math.random().toString(36).slice(2),
 			name,
