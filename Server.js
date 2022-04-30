@@ -32,7 +32,7 @@ export default class Server {
 	 */
 	async id_at_index(index) {
 		const result = await this.db.get(
-			`SELECT id FROM games LIMIT 1 OFFSET $index;`,
+			'SELECT id FROM games LIMIT 1 OFFSET $index;',
 			{
 				$index: index,
 			}
@@ -51,7 +51,7 @@ export default class Server {
 	 */
 	async show_game(id) {
 		const result = await this.db.get(
-			`SELECT * FROM games WHERE id = $id`,
+			'SELECT * FROM games WHERE id = $id',
 			game_to_query({
 				id,
 			})
@@ -73,11 +73,11 @@ export default class Server {
 		let query;
 
 		if (typeof category === 'string') {
-			query = this.db.all(`SELECT * FROM games WHERE category = $category;`, {
+			query = this.db.all('SELECT * FROM games WHERE category = $category;', {
 				$category: category,
 			});
 		} else {
-			query = this.db.all(`SELECT * FROM games;`);
+			query = this.db.all('SELECT * FROM games;');
 		}
 
 		for (let game of await query) {
@@ -91,7 +91,7 @@ export default class Server {
 	 */
 	async delete_game(id) {
 		const { changes } = await this.db.run(
-			`DELETE FROM games WHERE id = $id;`,
+			'DELETE FROM games WHERE id = $id;',
 			game_to_query({
 				id,
 			})
@@ -118,7 +118,7 @@ export default class Server {
 		});
 
 		await this.db.run(
-			`INSERT INTO games (id, name, type, category, src, plays) VALUES($id, $name, $type, $category, $src, $plays);`,
+			'INSERT INTO games (id, name, type, category, src, plays) VALUES($id, $name, $type, $category, $src, $plays);',
 			game_to_query(game)
 		);
 
@@ -160,7 +160,7 @@ export default class Server {
 		});
 
 		await this.db.run(
-			`UPDATE games SET name = $name, type = $type, category = $category, src = $src WHERE id = $id`,
+			'UPDATE games SET name = $name, type = $type, category = $category, src = $src WHERE id = $id',
 			game_to_query(game)
 		);
 
