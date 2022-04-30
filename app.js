@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { GAME_TYPES } from './Objects.js';
+import { GAME_TYPES } from './GamesWrapper.js';
 import server from './cli/server.js';
 import {
 	create_game,

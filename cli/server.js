@@ -48,7 +48,7 @@ export default function server({ secret, port, host }) {
 		async handler(request, reply) {
 			cors(request, reply);
 
-			const games = await server.list_games(request.query.category);
+			const games = await server.games.list_games(request.query.category);
 			const send = [];
 
 			if ('search' in request.query) {
@@ -98,7 +98,7 @@ export default function server({ secret, port, host }) {
 			cors(request, reply);
 
 			try {
-				const game = await server.show_game(request.params.id);
+				const game = await server.games.show_game(request.params.id);
 				reply.send(game);
 			} catch (error) {
 				if (NOT_EXIST.test(error)) {
@@ -138,7 +138,7 @@ export default function server({ secret, port, host }) {
 						$id: request.params.id,
 					}
 				);
-				const game = await server.show_game(request.params.id);
+				const game = await server.games.show_game(request.params.id);
 				reply.send(game);
 			} catch (error) {
 				if (NOT_EXIST.test(error)) {
