@@ -2,12 +2,14 @@ import Database from 'sqlite-async';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import GamesWrapper from './GamesWrapper.js';
+import CompatWrapper from './CompatWrapper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default class Server {
 	games = new GamesWrapper(this);
+	compat = new CompatWrapper(this);
 	constructor() {
 		this.open = this.open_db();
 	}

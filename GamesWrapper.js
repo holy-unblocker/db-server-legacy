@@ -17,15 +17,6 @@ export const GAME_TYPES = [
 
 /**
  *
- * @param {object} object
- * @returns {Game}
- */
-export function query_to_game(object) {
-	return object;
-}
-
-/**
- *
  * @param {Game} object
  * @returns {object}
  */
@@ -83,7 +74,7 @@ export default class GamesWrapper {
 	/**
 	 *
 	 * @param {number} index
-	 * @returns {import('./Objects.js').Game}
+	 * @returns {string}
 	 */
 	async id_at_index(index) {
 		const result = await this.server.db.get(
@@ -102,7 +93,7 @@ export default class GamesWrapper {
 	/**
 	 *
 	 * @param {string} id
-	 * @returns {import('./Objects.js').Game}
+	 * @returns {Game}
 	 */
 	async show_game(id) {
 		const result = await this.server.db.get(
@@ -116,7 +107,7 @@ export default class GamesWrapper {
 			throw new RangeError(`Game with ID ${id} doesn't exist.`);
 		}
 
-		return query_to_game(result);
+		return result;
 	}
 	/**
 	 *
@@ -127,14 +118,13 @@ export default class GamesWrapper {
 	 * @property {number} [limit]
 	 * @property {number} [limitPerCategory]
 	 * @property {string} [search]
+	 * @property {string} [category]
 	 */
 	/**
 	 * @param {ListGamesOptions} [options]
-	 * @returns {import('./Objects.js').Game[]}
+	 * @returns {Game[]}
 	 */
 	async list_games(options) {
-		const games = [];
-
 		// 0: select, 1: condition, 2: order, 3: limit
 		const select = ['SELECT * FROM games a'];
 		const conditions = [];
@@ -176,14 +166,10 @@ export default class GamesWrapper {
 
 		// console.log(select.join(' '));
 
-		const query = await this.server.db.all(
+		const games = await this.server.db.all(
 			select.filter(str => str).join(' '),
 			vars
 		);
-
-		for (let game of query) {
-			games.push(query_to_game(game));
-		}
 
 		if (options.leastGreatest === true) {
 			games.reverse();
@@ -210,20 +196,20 @@ export default class GamesWrapper {
 	 * @param {string} type
 	 * @param {string} src
 	 * @param {string} category
-	 * @returns {import('./Objects.js').Game}
+	 * @returns {Game}
 	 */
 	async create_game(name, type, src, category) {
-		const game = query_to_game({
+		const game = {
 			id: Math.random().toString(36).slice(2),
 			name,
 			type,
 			category,
 			src,
 			plays: 0,
-		});
+		};
 
 		await this.server.db.run(
-			'INSERT INTO games (id, name, type, category, src, plays) VALUES($id, $name, $type, $category, $src, $plays);',
+			'INSERT INTO games (id, name, type, category, src, plays) VALUES ($id, $name, $type, $category, $src, $plays);',
 			game_to_query(game)
 		);
 
@@ -256,13 +242,13 @@ export default class GamesWrapper {
 			category = game.category;
 		}
 
-		game = query_to_game({
+		game = {
 			id,
 			name,
 			type,
 			category,
 			src,
-		});
+		};
 
 		await this.server.db.run(
 			'UPDATE games SET name = $name, type = $type, category = $category, src = $src WHERE id = $id',

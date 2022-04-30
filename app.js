@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { GAME_TYPES } from './GamesWrapper.js';
+import { PROXY_TYPES } from './CompatWrapper.js';
 import server from './cli/server.js';
 import {
 	create_game,
@@ -7,7 +8,15 @@ import {
 	show_game,
 	list_games,
 	update_game,
-} from './cli/util.js';
+} from './cli/gameUtil.js';
+
+import {
+	create_compat,
+	delete_compat,
+	show_compat,
+	list_compat,
+	update_compat,
+} from './cli/compatUtil.js';
 
 const program = new Command();
 
@@ -48,5 +57,23 @@ program.command('show-game').argument('id').action(show_game);
 program.command('delete-game').argument('id').action(delete_game);
 
 program.command('list-games').argument('[category]').action(list_games);
+
+program
+	.command('create-compat')
+	.argument('host')
+	.requiredOption(`-p, --proxy <${PROXY_TYPES}>`)
+	.action(create_compat);
+
+program
+	.command('update-compat')
+	.argument('host')
+	.option(`-p, --proxy <${PROXY_TYPES}>`)
+	.action(update_compat);
+
+program.command('show-compat').argument('host').action(show_compat);
+
+program.command('delete-compat').argument('host').action(delete_compat);
+
+program.command('list-compat').action(list_compat);
 
 program.parse(process.argv);

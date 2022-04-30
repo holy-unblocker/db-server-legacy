@@ -56,9 +56,9 @@ export async function delete_game(id) {
 	const deleted = await server.games.delete_game(id);
 
 	if (deleted) {
-		console.log(`Game deleted.`);
+		console.log('Game deleted.');
 	} else {
-		console.log(`Game wasn't deleted. Is the ID valid?`);
+		console.log("Game wasn't deleted. Is the ID valid?");
 	}
 }
 
@@ -69,9 +69,9 @@ export async function update_game(id, { name, type, src, category }) {
 
 	id = await resolve_id(server, id);
 
-	const game = await server.games.update_game(id, name, type, src, category);
+	await server.games.update_game(id, name, type, src, category);
 
-	console.log(`Updated game.`);
+	console.log('Updated game.');
 }
 
 export async function create_game({ name, type, src, category }) {
