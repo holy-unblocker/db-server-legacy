@@ -80,11 +80,9 @@ export default async function registerGames(fastify, { secret, server }) {
 			}
 
 			try {
-				await server.db.run(
-					'UPDATE games SET plays = plays + 1 WHERE id = $id',
-					{
-						$id: request.params.id,
-					}
+				await server.client.query(
+					'UPDATE games SET plays = plays + 1 WHERE id = $1',
+					[request.params.id]
 				);
 				const game = await server.games.show_game(request.params.id);
 				reply.send(game);

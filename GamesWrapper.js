@@ -118,21 +118,22 @@ export default class GamesWrapper {
 	 * @param {ListGamesOptions} [options]
 	 * @returns {Game[]}
 	 */
-	async list_games(options) {
+	async list_games(options = {}) {
 		// 0: select, 1: condition, 2: order, 3: limit
-		const select = ['SELECT * FROM games a'];
+		const select = [];
 		const conditions = [];
 		const vars = [];
+		const selection = ['*'];
 
 		if (typeof options.category === 'string') {
 			vars.push(options.category);
-			conditions.push(`category = $${vars.length + 1}`);
+			conditions.push(`category = $${vars.length}`);
 		}
 
 		if (typeof options.limitPerCategory === 'number') {
 			vars.push(options.limitPerCategory - 1);
 			conditions.push(
-				`(SELECT COUNT(*) FROM games b WHERE category = a."category" AND a."id" < b."id") < $${vars.length}`
+				`(SELECT COUNT(*) FROM games b WHERE b."category" = a."category" AND a."index" < b."index") < $${vars.length}`
 			);
 		}
 
@@ -146,7 +147,9 @@ export default class GamesWrapper {
 			case 'search':
 				if (typeof options.search === 'string') {
 					vars.push(options.search.toUpperCase());
-					select[2] = `ORDER BY 1 - instr(UPPER(name), $${vars.length})`;
+					selection.push(`similarity(name, $${vars.length}) as sml`);
+					conditions.push(`name % $${vars.length}`);
+					select[2] = `ORDER BY sml DESC, name`;
 				}
 				break;
 		}
@@ -160,12 +163,12 @@ export default class GamesWrapper {
 			select[3] = `LIMIT $${vars.length}`;
 		}
 
-		const { rows: games, ...x } = await this.server.client.query(
-			select.filter(str => str).join(' '),
-			vars
-		);
+		const query =
+			['SELECT', selection.join(', '), 'FROM games a', ...select]
+				.filter(str => str)
+				.join(' ') + ';';
 
-		console.log({ games, ...x });
+		const { rows: games } = await this.server.client.query(query, vars);
 
 		if (options.leastGreatest === true) {
 			games.reverse();
