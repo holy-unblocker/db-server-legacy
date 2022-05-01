@@ -26,17 +26,11 @@ const program = new Command();
 program
 	.command('server')
 	.option('-h, --host <string>', 'Listening host', 'localhost')
-	.option(
-		'-p, --port <number>',
-		'Listening port',
-		'PORT' in process.env ? process.env.PORT : 80
-	)
+	.option('-p, --port <number>', 'Listening port', process.env.PORT || 80)
 	.option(
 		'-s, --secret <string>',
 		'HCaptcha secret',
-		'HCAPTCHA_SECRET' in process.env
-			? process.env.HCAPTCHA_SECRET
-			: '0x0000000000000000000000000000000000000000'
+		process.env.HCAPTCHA_SECRET || '0x0000000000000000000000000000000000000000'
 	)
 	.action(server);
 
