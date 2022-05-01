@@ -148,7 +148,7 @@ export default class GamesWrapper {
 				if (typeof options.search === 'string') {
 					vars.push(options.search.toUpperCase());
 					selection.push(`similarity(name, $${vars.length}) as sml`);
-					conditions.push(`name % $${vars.length}`);
+					// conditions.push(`name % $${vars.length}`);
 					select[2] = `ORDER BY sml DESC, name`;
 				}
 				break;
