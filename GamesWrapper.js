@@ -18,17 +18,36 @@ export const GAME_TYPES = [
 /**
  *
  * @param {Game} object
- * @returns {object}
  */
-export function game_to_query(game) {
-	const query = {};
-
+export function validate_game(game) {
 	if ('id' in game) {
-		query.$id = game.id;
+		if (typeof game.id !== 'string') {
+			throw new TypeError('Game ID was not a string');
+		}
 	}
 
 	if ('name' in game) {
-		query.$name = game.name;
+		if (typeof game.name !== 'string') {
+			throw new TypeError('Game name was not a string');
+		}
+	}
+
+	if ('category' in game) {
+		if (typeof game.category !== 'string') {
+			throw new TypeError('Game category was not a string');
+		}
+	}
+
+	if ('src' in game) {
+		if (typeof game.src !== 'string') {
+			throw new TypeError('Game src was not a string');
+		}
+	}
+
+	if ('plays' in game) {
+		if (typeof game.plays !== 'number') {
+			throw new TypeError('Game plays was not a number');
+		}
 	}
 
 	if ('type' in game) {
@@ -37,31 +56,7 @@ export function game_to_query(game) {
 				`Game type was not one of the following: ${GAME_TYPES}`
 			);
 		}
-
-		query.$type = game.type;
 	}
-
-	if ('category' in game) {
-		query.$category = game.category;
-	}
-
-	if ('src' in game) {
-		if (typeof game.src !== 'string') {
-			throw new TypeError('Game src was not a string');
-		}
-
-		query.$src = game.src;
-	}
-
-	if ('plays' in game) {
-		if (typeof game.plays !== 'number') {
-			throw new TypeError('Game plays was not a number');
-		}
-
-		query.$plays = game.plays;
-	}
-
-	return query;
 }
 
 export default class GamesWrapper {
@@ -77,11 +72,11 @@ export default class GamesWrapper {
 	 * @returns {string}
 	 */
 	async id_at_index(index) {
-		const result = await this.server.db.get(
-			'SELECT id FROM games LIMIT 1 OFFSET $index;',
-			{
-				$index: index,
-			}
+		const {
+			rows: [result],
+		} = await this.server.client.query(
+			'SELECT id FROM games LIMIT 1 OFFSET $1;',
+			[index]
 		);
 
 		if (result === undefined) {
@@ -96,12 +91,11 @@ export default class GamesWrapper {
 	 * @returns {Game}
 	 */
 	async show_game(id) {
-		const result = await this.server.db.get(
-			'SELECT * FROM games WHERE id = $id',
-			game_to_query({
-				id,
-			})
-		);
+		const {
+			rows: [result],
+		} = await this.server.client.query('SELECT * FROM games WHERE id = $1', [
+			id,
+		]);
 
 		if (result === undefined) {
 			throw new RangeError(`Game with ID ${id} doesn't exist.`);
@@ -128,16 +122,17 @@ export default class GamesWrapper {
 		// 0: select, 1: condition, 2: order, 3: limit
 		const select = ['SELECT * FROM games a'];
 		const conditions = [];
-		const vars = {};
+		const vars = [];
 
 		if (typeof options.category === 'string') {
-			conditions.push('category = $category');
-			vars.$category = options.category;
+			vars.push(options.category);
+			conditions.push(`category = $${vars.length + 1}`);
 		}
 
 		if (typeof options.limitPerCategory === 'number') {
+			vars.push(options.limitPerCategory - 1);
 			conditions.push(
-				`(SELECT COUNT(*) FROM games b WHERE category = a."category" AND a."ROWID" < b."ROWID") < ${options.limitPerCategory} - 1`
+				`(SELECT COUNT(*) FROM games b WHERE category = a."category" AND a."id" < b."id") < $${vars.length}`
 			);
 		}
 
@@ -150,8 +145,8 @@ export default class GamesWrapper {
 				break;
 			case 'search':
 				if (typeof options.search === 'string') {
-					select[2] = 'ORDER BY 1 - instr(UPPER(name), $search)';
-					vars.$search = options.search.toUpperCase();
+					vars.push(options.search.toUpperCase());
+					select[2] = `ORDER BY 1 - instr(UPPER(name), $${vars.length})`;
 				}
 				break;
 		}
@@ -161,15 +156,16 @@ export default class GamesWrapper {
 		}
 
 		if (typeof options.limit === 'number') {
-			select[3] = `LIMIT ${options.limit}`;
+			vars.push(options.limit);
+			select[3] = `LIMIT $${vars.length}`;
 		}
 
-		// console.log(select.join(' '));
-
-		const games = await this.server.db.all(
+		const { rows: games, ...x } = await this.server.client.query(
 			select.filter(str => str).join(' '),
 			vars
 		);
+
+		console.log({ games, ...x });
 
 		if (options.leastGreatest === true) {
 			games.reverse();
@@ -181,11 +177,9 @@ export default class GamesWrapper {
 	 * @param {string} id
 	 */
 	async delete_game(id) {
-		const { changes } = await this.server.db.run(
-			'DELETE FROM games WHERE id = $id;',
-			game_to_query({
-				id,
-			})
+		const { changes } = await this.server.client.query(
+			'DELETE FROM games WHERE id = $1;',
+			[id]
 		);
 
 		return changes !== 0;
@@ -208,9 +202,11 @@ export default class GamesWrapper {
 			plays: 0,
 		};
 
-		await this.server.db.run(
-			'INSERT INTO games (id, name, type, category, src, plays) VALUES ($id, $name, $type, $category, $src, $plays);',
-			game_to_query(game)
+		validate_game(game);
+
+		await this.server.client.query(
+			'INSERT INTO games (id, name, type, category, src, plays) VALUES ($1, $2, $3, $4, $5, $6);',
+			[game.id, game.name, game.type, game.category, game.src, game.plays]
 		);
 
 		return game;
@@ -250,9 +246,11 @@ export default class GamesWrapper {
 			src,
 		};
 
-		await this.server.db.run(
-			'UPDATE games SET name = $name, type = $type, category = $category, src = $src WHERE id = $id',
-			game_to_query(game)
+		validate_game(game);
+
+		await this.server.client.query(
+			'UPDATE games SET name = $1, type = $2, category = $3, src = $4 WHERE id = $5',
+			[game.name, game.type, game.category, game.src, game.id]
 		);
 
 		return game;

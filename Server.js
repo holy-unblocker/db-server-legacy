@@ -1,34 +1,40 @@
-import Database from 'sqlite-async';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import pg from 'pg';
 import GamesWrapper from './GamesWrapper.js';
 import CompatWrapper from './CompatWrapper.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 export default class Server {
 	games = new GamesWrapper(this);
 	compat = new CompatWrapper(this);
 	constructor() {
+		this.client = new pg.Client({
+			host: process.env.PG_HOST,
+			port: process.env.PG_PORT,
+			user: process.env.PG_USER,
+			password: process.env.PG_PASSWORD,
+			database: process.env.PG_DATABASE,
+		});
+		/**
+		 * @type {pg.Client}
+		 */
 		this.open = this.open_db();
 	}
+	async close() {
+		await this.client.end();
+	}
 	async open_db() {
-		/**
-		 * @type {Database.prototype} db
-		 */
-		this.db = await Database.open(join(__dirname, 'server.db'));
+		await this.client.connect();
 
-		await this.db.run(`CREATE TABLE IF NOT EXISTS games (
+		await this.client.query(`CREATE TABLE IF NOT EXISTS games (
+			index SERIAL PRIMARY KEY,
 			id TEXT PRIMARY KEY NOT NULL UNIQUE,
 			name TEXT NOT NULL,
 			category TEXT NOT NULL,
 			type TEXT NOT NULL,
 			src TEXT NOT NULL,
-			plays NUMBER NOT NULL
+			plays INTEGER NOT NULL
 		);`);
 
-		await this.db.run(`CREATE TABLE IF NOT EXISTS compat (
+		await this.client.query(`CREATE TABLE IF NOT EXISTS compat (
 			host TEXT PRIMARY KEY NOT NULL UNIQUE,
 			proxy TEXT NOT NULL
 		);`);

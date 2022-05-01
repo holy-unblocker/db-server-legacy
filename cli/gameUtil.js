@@ -9,16 +9,17 @@ import Server from '../Server.js';
  */
 async function resolve_id(server, i, confirm) {
 	if (!isNaN(i)) {
-		const id = await server.id_at_index(i);
+		const id = await server.games.id_at_index(i);
 
 		if (confirm !== true) {
 			return id;
 		}
 
-		console.table(await server.show_game(id));
+		console.table(await server.games.show_game(id));
 		if (await promptly.confirm('Is this the correct game? (y/n)')) {
 			return id;
 		} else {
+			await server.close();
 			process.exit();
 		}
 	} else if (typeof i === 'string') {
@@ -34,6 +35,8 @@ export async function list_games(category) {
 	await server.open;
 
 	console.table(await server.games.list_games(category));
+
+	await server.close();
 }
 
 export async function show_game(id) {
@@ -44,6 +47,8 @@ export async function show_game(id) {
 	id = await resolve_id(server, id);
 
 	console.table(await server.games.show_game(id));
+
+	await server.close();
 }
 
 export async function delete_game(id) {
@@ -60,6 +65,8 @@ export async function delete_game(id) {
 	} else {
 		console.log("Game wasn't deleted. Is the ID valid?");
 	}
+
+	await server.close();
 }
 
 export async function update_game(id, { name, type, src, category }) {
@@ -72,6 +79,8 @@ export async function update_game(id, { name, type, src, category }) {
 	await server.games.update_game(id, name, type, src, category);
 
 	console.log('Updated game.');
+
+	await server.close();
 }
 
 export async function create_game({ name, type, src, category }) {
@@ -82,4 +91,6 @@ export async function create_game({ name, type, src, category }) {
 	const game = await server.games.create_game(name, type, src, category);
 
 	console.log(`Game created. ID: ${game.id.toString('hex')}`);
+
+	await server.close();
 }

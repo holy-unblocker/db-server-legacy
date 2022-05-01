@@ -32,8 +32,6 @@ export default function server({ secret, port, host }) {
 		server,
 	});
 
-	console.log('HCaptcha secret:', secret);
-
 	fastify.listen(port, host, (error, url) => {
 		if (error) {
 			console.error(error);

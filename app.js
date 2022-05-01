@@ -1,3 +1,6 @@
+import { config } from 'dotenv';
+config();
+
 import { Command } from 'commander';
 import { GAME_TYPES } from './GamesWrapper.js';
 import { PROXY_TYPES } from './CompatWrapper.js';
@@ -31,7 +34,9 @@ program
 	.option(
 		'-s, --secret <string>',
 		'HCaptcha secret',
-		'0x0000000000000000000000000000000000000000'
+		'HCAPTCHA_SECRET' in process.env
+			? process.env.HCAPTCHA_SECRET
+			: '0x0000000000000000000000000000000000000000'
 	)
 	.action(server);
 

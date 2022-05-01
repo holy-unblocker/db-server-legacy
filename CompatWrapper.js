@@ -9,17 +9,12 @@ export const PROXY_TYPES = ['ultraviolet', 'rammerhead', 'stomp'];
 /**
  *
  * @param {Compat} compat
- * @returns {object}
  */
-export function compat_to_query(compat) {
-	const query = {};
-
+export function validate_compat(compat) {
 	if ('host' in compat) {
 		if (typeof compat.host !== 'string') {
 			throw new TypeError('Compat host was not a string');
 		}
-
-		query.$host = compat.host;
 	}
 
 	if ('proxy' in compat) {
@@ -28,11 +23,7 @@ export function compat_to_query(compat) {
 				`Proxy type was not one of the following: ${PROXY_TYPES}`
 			);
 		}
-
-		query.$proxy = compat.proxy;
 	}
-
-	return query;
 }
 
 export default class CompatWrapper {
@@ -48,12 +39,11 @@ export default class CompatWrapper {
 	 * @returns {Compat}
 	 */
 	async show_compat(host) {
-		const result = await this.server.db.get(
-			'SELECT * FROM compat WHERE host = $host',
-			compat_to_query({
-				host,
-			})
-		);
+		const {
+			rows: [result],
+		} = await this.server.client.query('SELECT * FROM compat WHERE host = $1', [
+			host,
+		]);
 
 		if (result === undefined) {
 			throw new RangeError(`Proxy with host ${host} doesn't exist.`);
@@ -65,17 +55,19 @@ export default class CompatWrapper {
 	 * @returns {Compat[]}
 	 */
 	async list_compat() {
-		return await this.server.db.all('SELECT * FROM compat;');
+		const { rows: compat } = await this.server.client.query(
+			'SELECT * FROM compat;'
+		);
+
+		return compat;
 	}
 	/**
 	 * @param {string} host
 	 */
 	async delete_compat(host) {
-		const { changes } = await this.server.db.run(
-			'DELETE FROM compat WHERE host = $host;',
-			compat_to_query({
-				host,
-			})
+		const { changes } = await this.server.client.query(
+			'DELETE FROM compat WHERE host = $1;',
+			[host]
 		);
 
 		return changes !== 0;
@@ -92,9 +84,11 @@ export default class CompatWrapper {
 			proxy,
 		};
 
-		await this.server.db.run(
-			'INSERT INTO compat (host, proxy) VALUES ($host, $proxy);',
-			compat_to_query(compat)
+		validate_compat(compat);
+
+		await this.server.client.query(
+			'INSERT INTO compat (host, proxy) VALUES ($1, $2);',
+			[compat.host, compat.proxy]
 		);
 
 		return compat;
@@ -116,9 +110,11 @@ export default class CompatWrapper {
 			proxy,
 		};
 
-		await this.server.db.run(
-			'UPDATE compat SET proxy = $proxy WHERE host = $host',
-			compat_to_query(compat)
+		validate_compat(compat);
+
+		await this.server.client.query(
+			'UPDATE compat SET proxy = $1 WHERE host = $2',
+			[compat.proxy, compat.host]
 		);
 
 		return compat;

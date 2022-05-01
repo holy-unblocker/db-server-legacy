@@ -6,6 +6,8 @@ export async function list_compat() {
 	await server.open;
 
 	console.table(await server.compat.list_compat());
+
+	await server.close();
 }
 
 export async function show_compat(host) {
@@ -14,6 +16,8 @@ export async function show_compat(host) {
 	await server.open;
 
 	console.table(await server.compat.show_compat(host));
+
+	await server.close();
 }
 
 export async function delete_compat(host) {
@@ -28,6 +32,8 @@ export async function delete_compat(host) {
 	} else {
 		console.log("Compat wasn't deleted. Is the host valid?");
 	}
+
+	await server.close();
 }
 
 export async function update_compat(host, { proxy }) {
@@ -38,6 +44,8 @@ export async function update_compat(host, { proxy }) {
 	await server.compat.update_compat(host, proxy);
 
 	console.log('Updated compat.');
+
+	await server.close();
 }
 
 export async function create_compat(host, { proxy }) {
@@ -48,4 +56,6 @@ export async function create_compat(host, { proxy }) {
 	await server.compat.create_compat(host, proxy);
 
 	console.log('Compat created.');
+
+	await server.close();
 }

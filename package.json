@@ -4,10 +4,12 @@
 	"type": "module",
 	"dependencies": {
 		"commander": "^9.2.0",
+		"dotenv": "^16.0.0",
 		"effective-domain-name-parser": "^0.0.10",
 		"fastify": "^3.28.0",
 		"hcaptcha": "^0.1.1",
 		"http-errors": "^2.0.0",
+		"pg": "^8.7.3",
 		"promptly": "^3.2.0",
 		"sqlite-async": "^1.1.3"
 	},
