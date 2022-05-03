@@ -5,14 +5,20 @@ import CompatWrapper from './CompatWrapper.js';
 export default class Server {
 	games = new GamesWrapper(this);
 	compat = new CompatWrapper(this);
-	constructor() {
-		this.client = new pg.Client({
-			host: process.env.PG_HOST,
-			port: process.env.PG_PORT,
-			user: process.env.PG_USER,
-			password: process.env.PG_PASSWORD,
-			database: process.env.PG_DATABASE,
-		});
+	/**
+	 *
+	 * @param {pg.ClientConfig} [pg_options]
+	 */
+	constructor(pg_options) {
+		this.client = new pg.Client(
+			pg_options || {
+				host: process.env.PG_HOST,
+				port: process.env.PG_PORT,
+				user: process.env.PG_USER,
+				password: process.env.PG_PASSWORD,
+				database: process.env.PG_DATABASE,
+			}
+		);
 		/**
 		 * @type {pg.Client}
 		 */
@@ -34,7 +40,8 @@ export default class Server {
 			category TEXT NOT NULL,
 			type TEXT NOT NULL,
 			src TEXT NOT NULL,
-			plays INTEGER NOT NULL
+			plays INTEGER NOT NULL,
+			controls TEXT NOT NULL
 		);`);
 
 		await this.client.query(

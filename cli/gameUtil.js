@@ -33,8 +33,16 @@ export async function list_games(category) {
 	const server = new Server();
 
 	await server.open;
+	const list = [];
 
-	console.table(await server.games.list_games(category));
+	for (let game of await server.games.list_games(category)) {
+		const g = { ...game };
+		delete g.index;
+		delete g.controls;
+		list.push(g);
+	}
+
+	console.table(list);
 
 	await server.close();
 }

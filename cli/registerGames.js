@@ -32,6 +32,7 @@ export default async function registerGames(fastify, { secret, server }) {
 					name: game.name,
 					id: game.id,
 					category: game.category,
+					controls: game.controls,
 				});
 			}
 

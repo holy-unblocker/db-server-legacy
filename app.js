@@ -38,6 +38,7 @@ program
 	.command('create-game')
 	.requiredOption('-n, --name <name>')
 	.requiredOption('-c, --category <category>')
+	.option('-co, --controls <controls>')
 	.requiredOption(`-t, --type <${GAME_TYPES}>`)
 	.requiredOption('-s, --src <url>')
 	.action(create_game);
@@ -47,6 +48,7 @@ program
 	.argument('id')
 	.option('-n, --name <name>')
 	.option('-c, --category <category>')
+	.option('-co, --controls <controls>')
 	.option(`-t, --type <${GAME_TYPES}>`)
 	.option('-s, --src <url>')
 	.action(update_game);

@@ -8,13 +8,37 @@ export const GAME_TYPES = [
 ];
 
 /**
+ *
+ * @typedef {'wasd'|'arrows'|string} KeyLike
+ * @description one of the above types or a key in the event.code format. see https://www.w3.org/2002/09/tests/keys.html
+ */
+
+/**
+ *
+ * @typedef {object} Control
+ * @property {KeyLike[]} keys
+ * @property {string} label
+ *
+ */
+
+/**
  * @typedef {object} Game
  * @property {'emulator.nes'|'emulator.gba'|'emulator.genesis'|'embed'|'proxy'} type
+ * @property {Control[]} controls
  * @property {string} id
  * @property {string} name
  * @property {number} plays
  */
 
+export function row_to_game(game) {
+	const result = { ...game };
+
+	if ('controls' in result) {
+		result.controls = JSON.parse(game.controls);
+	}
+
+	return result;
+}
 /**
  *
  * @param {Game} object
@@ -35,6 +59,12 @@ export function validate_game(game) {
 	if ('category' in game) {
 		if (typeof game.category !== 'string') {
 			throw new TypeError('Game category was not a string');
+		}
+	}
+
+	if ('controls' in game) {
+		if (!(game.controls instanceof Array)) {
+			throw new TypeError('Game controls was not an array');
 		}
 	}
 
@@ -75,7 +105,7 @@ export default class GamesWrapper {
 		const {
 			rows: [result],
 		} = await this.server.client.query(
-			'SELECT id FROM games LIMIT 1 OFFSET $1;',
+			'SELECT id FROM games WHERE index = $1;',
 			[index]
 		);
 
@@ -92,16 +122,18 @@ export default class GamesWrapper {
 	 */
 	async show_game(id) {
 		const {
-			rows: [result],
+			rows: [row],
 		} = await this.server.client.query('SELECT * FROM games WHERE id = $1', [
 			id,
 		]);
 
-		if (result === undefined) {
+		if (row === undefined) {
 			throw new RangeError(`Game with ID ${id} doesn't exist.`);
 		}
 
-		return result;
+		const game = row_to_game(row);
+
+		return game;
 	}
 	/**
 	 *
@@ -168,7 +200,9 @@ export default class GamesWrapper {
 				.filter(str => str)
 				.join(' ') + ';';
 
-		const { rows: games } = await this.server.client.query(query, vars);
+		const { rows } = await this.server.client.query(query, vars);
+
+		const games = rows.map(row_to_game);
 
 		if (options.leastGreatest === true) {
 			games.reverse();
@@ -195,7 +229,7 @@ export default class GamesWrapper {
 	 * @param {string} category
 	 * @returns {Game}
 	 */
-	async create_game(name, type, src, category) {
+	async create_game(name, type, src, category, controls) {
 		const game = {
 			id: Math.random().toString(36).slice(2),
 			name,
@@ -203,13 +237,22 @@ export default class GamesWrapper {
 			category,
 			src,
 			plays: 0,
+			controls: JSON.parse(controls),
 		};
 
 		validate_game(game);
 
 		await this.server.client.query(
-			'INSERT INTO games (id, name, type, category, src, plays) VALUES ($1, $2, $3, $4, $5, $6);',
-			[game.id, game.name, game.type, game.category, game.src, game.plays]
+			'INSERT INTO games (id, name, type, category, src, plays, controls) VALUES ($1, $2, $3, $4, $5, $6, $7);',
+			[
+				game.id,
+				game.name,
+				game.type,
+				game.category,
+				game.src,
+				game.plays,
+				JSON.stringify(game.controls),
+			]
 		);
 
 		return game;
