@@ -84,14 +84,11 @@ export async function update_game(id, { name, type, src, category, controls }) {
 
 	id = await resolve_id(server, id);
 
-	await server.games.update_game(
-		id,
-		name,
-		type,
-		src,
-		category,
-		JSON.parse(controls || '[]')
-	);
+	if (typeof controls === 'string') {
+		controls = JSON.parse(controls);
+	}
+
+	await server.games.update_game(id, name, type, src, category, controls);
 
 	console.log('Updated game.');
 
@@ -103,12 +100,18 @@ export async function create_game({ name, type, src, category, controls }) {
 
 	await server.open;
 
+	if (typeof controls === 'string') {
+		controls = JSON.parse(controls);
+	} else {
+		controls = [];
+	}
+
 	const game = await server.games.create_game(
 		name,
 		type,
 		src,
 		category,
-		JSON.parse(controls || '[]')
+		controls
 	);
 
 	console.log(`Game created. ID: ${game.id.toString('hex')}`);

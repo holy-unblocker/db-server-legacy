@@ -10,7 +10,7 @@ export const GAME_TYPES = [
 /**
  *
  * @typedef {'mouseleft'|'mouseright'|'scrollup'|'scrolldown'|'wasd'|'arrows'|string} KeyLike
- * @description one of the above types or a key in the event.code format. see https://www.w3.org/2002/09/tests/keys.html
+ * @description one of the above types or a letter/key such as A,B,TAB,SPACE,SHIFT
  */
 
 /**
@@ -264,8 +264,9 @@ export default class GamesWrapper {
 	 * @param {string} [type]
 	 * @param {string} [src]
 	 * @param {string} [category]
+	 * @param {Control[]} [controls]
 	 */
-	async update_game(id, name, type, src, category) {
+	async update_game(id, name, type, src, category, controls) {
 		let game = await this.show_game(id);
 
 		if (name === undefined) {
@@ -284,19 +285,31 @@ export default class GamesWrapper {
 			category = game.category;
 		}
 
+		if (category === undefined) {
+			category = game.category;
+		}
+
 		game = {
 			id,
 			name,
 			type,
 			category,
 			src,
+			controls,
 		};
 
 		validate_game(game);
 
 		await this.server.client.query(
-			'UPDATE games SET name = $1, type = $2, category = $3, src = $4 WHERE id = $5',
-			[game.name, game.type, game.category, game.src, game.id]
+			'UPDATE games SET name = $1, type = $2, category = $3, src = $4, controls = $5 WHERE id = $6',
+			[
+				game.name,
+				game.type,
+				game.category,
+				game.src,
+				JSON.stringify(game.controls),
+				game.id,
+			]
 		);
 
 		return game;
