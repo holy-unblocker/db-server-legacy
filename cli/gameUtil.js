@@ -77,26 +77,39 @@ export async function delete_game(id) {
 	await server.close();
 }
 
-export async function update_game(id, { name, type, src, category }) {
+export async function update_game(id, { name, type, src, category, controls }) {
 	const server = new Server();
 
 	await server.open;
 
 	id = await resolve_id(server, id);
 
-	await server.games.update_game(id, name, type, src, category);
+	await server.games.update_game(
+		id,
+		name,
+		type,
+		src,
+		category,
+		JSON.parse(controls || '[]')
+	);
 
 	console.log('Updated game.');
 
 	await server.close();
 }
 
-export async function create_game({ name, type, src, category }) {
+export async function create_game({ name, type, src, category, controls }) {
 	const server = new Server();
 
 	await server.open;
 
-	const game = await server.games.create_game(name, type, src, category);
+	const game = await server.games.create_game(
+		name,
+		type,
+		src,
+		category,
+		JSON.parse(controls || '[]')
+	);
 
 	console.log(`Game created. ID: ${game.id.toString('hex')}`);
 

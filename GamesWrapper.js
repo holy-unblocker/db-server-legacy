@@ -9,7 +9,7 @@ export const GAME_TYPES = [
 
 /**
  *
- * @typedef {'wasd'|'arrows'|string} KeyLike
+ * @typedef {'mouseleft'|'mouseright'|'scrollup'|'scrolldown'|'wasd'|'arrows'|string} KeyLike
  * @description one of the above types or a key in the event.code format. see https://www.w3.org/2002/09/tests/keys.html
  */
 
