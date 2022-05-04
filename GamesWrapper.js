@@ -163,7 +163,7 @@ export default class GamesWrapper {
 		}
 
 		if (typeof options.limitPerCategory === 'number') {
-			vars.push(options.limitPerCategory - 1);
+			vars.push(options.limitPerCategory);
 			conditions.push(
 				`(SELECT COUNT(*) FROM games b WHERE b."category" = a."category" AND a."index" < b."index") < $${vars.length}`
 			);
