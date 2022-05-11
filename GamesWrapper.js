@@ -237,7 +237,7 @@ export default class GamesWrapper {
 			category,
 			src,
 			plays: 0,
-			controls: JSON.parse(controls),
+			controls,
 		};
 
 		validate_game(game);
@@ -285,8 +285,8 @@ export default class GamesWrapper {
 			category = game.category;
 		}
 
-		if (category === undefined) {
-			category = game.category;
+		if (controls === undefined) {
+			controls = game.controls;
 		}
 
 		game = {
