@@ -1,6 +1,6 @@
 import { cors } from './serverCommon.js';
 import HTTPErrors from 'http-errors';
-import hcaptcha from 'hcaptcha';
+// import hcaptcha from 'hcaptcha';
 
 const NOT_EXIST = /Game with ID .*? doesn't exist/;
 
@@ -73,11 +73,11 @@ export default async function registerGames(fastify, { secret, server }) {
 		async handler(request, reply) {
 			cors(request, reply);
 
-			const data = await hcaptcha.verify(secret, request.query.token);
+			/* const data = await hcaptcha.verify(secret, request.query.token);
 
 			if (!data.success) {
 				throw new HTTPErrors.Forbidden('Bad captcha');
-			}
+			}*/
 
 			try {
 				await server.client.query(
