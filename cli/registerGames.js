@@ -4,7 +4,7 @@ import HTTPErrors from 'http-errors';
 
 const NOT_EXIST = /Game with ID .*? doesn't exist/;
 
-export default async function registerGames(fastify, { secret, server }) {
+export default async function registerGames(fastify, { server }) {
 	fastify.route({
 		url: '/',
 		method: 'GET',
