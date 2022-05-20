@@ -76,7 +76,7 @@ export default class CompatWrapper {
 	 *
 	 * @param {string} host
 	 * @param {string} proxy
-	 * @returns {Game}
+	 * @returns {Voucher}
 	 */
 	async create_compat(host, proxy) {
 		const compat = {
