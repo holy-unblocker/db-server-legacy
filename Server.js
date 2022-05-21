@@ -1,10 +1,6 @@
 import pg from 'pg';
-import GamesWrapper from './GamesWrapper.js';
-import CompatWrapper from './CompatWrapper.js';
 
 export default class Server {
-	games = new GamesWrapper(this);
-	compat = new CompatWrapper(this);
 	/**
 	 *
 	 * @param {pg.ClientConfig} [pg_options]

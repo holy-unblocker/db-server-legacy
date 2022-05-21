@@ -1,7 +1,7 @@
 import { config } from 'dotenv-flow';
 config();
 
-import { PROXY_TYPES } from '../CompatWrapper.js';
+import CompatWrapper, { PROXY_TYPES } from '../CompatWrapper.js';
 import { Command } from 'commander';
 import Server from '../Server.js';
 
@@ -13,10 +13,10 @@ program
 	.requiredOption(`-p, --proxy <${PROXY_TYPES}>`)
 	.action(async (host, { proxy }) => {
 		const server = new Server();
-
 		await server.open;
+		const compat = new CompatWrapper(server);
 
-		await server.compat.create(host, proxy);
+		await compat.create(host, proxy);
 
 		console.log('Compat created.');
 
@@ -32,7 +32,9 @@ program
 
 		await server.open;
 
-		await server.compat.update(host, proxy);
+		const compat = new CompatWrapper(server);
+
+		await compat.update(host, proxy);
 
 		console.log('Updated compat.');
 
@@ -44,10 +46,10 @@ program
 	.argument('host')
 	.action(async host => {
 		const server = new Server();
-
 		await server.open;
+		const compat = new CompatWrapper(server);
 
-		console.table(await server.compat.show(host));
+		console.table(await compat.show(host));
 
 		await server.close();
 	});
@@ -57,10 +59,10 @@ program
 	.argument('host')
 	.action(async host => {
 		const server = new Server();
-
 		await server.open;
+		const compat = new CompatWrapper(server);
 
-		const deleted = await server.compat.delete(host);
+		const deleted = await compat.delete(host);
 
 		if (deleted) {
 			console.log('Compat deleted.');
@@ -73,10 +75,10 @@ program
 
 program.command('list').action(async () => {
 	const server = new Server();
-
 	await server.open;
+	const compat = new CompatWrapper(server);
 
-	console.table(await server.compat.list());
+	console.table(await compat.list());
 
 	await server.close();
 });

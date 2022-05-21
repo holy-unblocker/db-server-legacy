@@ -1,7 +1,7 @@
 import { config } from 'dotenv-flow';
 config();
 
-import { GAME_TYPES } from '../GamesWrapper.js';
+import GamesWrapper, { GAME_TYPES } from '../GamesWrapper.js';
 import { Command } from 'commander';
 import promptly from 'promptly';
 import Server from '../Server.js';
@@ -13,14 +13,16 @@ import Server from '../Server.js';
  * @returns
  */
 async function resolve_id(server, i, confirm) {
+	const games = new GamesWrapper(server);
+
 	if (!isNaN(i)) {
-		const id = await server.games.id_at_index(i);
+		const id = await games.id_at_index(i);
 
 		if (confirm !== true) {
 			return id;
 		}
 
-		console.table(await server.games.show(id));
+		console.table(await games.show(id));
 		if (await promptly.confirm('Is this the correct game? (y/n)')) {
 			return id;
 		} else {
@@ -45,8 +47,8 @@ program
 	.requiredOption('-s, --src <url>')
 	.action(async ({ name, type, src, category, controls }) => {
 		const server = new Server();
-
 		await server.open;
+		const games = new GamesWrapper(server);
 
 		if (typeof controls === 'string') {
 			controls = JSON.parse(controls);
@@ -54,7 +56,7 @@ program
 			controls = [];
 		}
 
-		const game = await server.games.create(name, type, src, category, controls);
+		const game = await games.create(name, type, src, category, controls);
 
 		console.log(`Game created. ID: ${game.id.toString('hex')}`);
 
@@ -71,8 +73,8 @@ program
 	.option('-s, --src <url>')
 	.action(async (id, { name, type, src, category, controls }) => {
 		const server = new Server();
-
 		await server.open;
+		const games = new GamesWrapper(server);
 
 		id = await resolve_id(server, id);
 
@@ -80,7 +82,7 @@ program
 			controls = JSON.parse(controls);
 		}
 
-		await server.games.update(id, name, type, src, category, controls);
+		await games.update(id, name, type, src, category, controls);
 
 		console.log('Updated game.');
 
@@ -92,12 +94,12 @@ program
 	.argument('id')
 	.action(async id => {
 		const server = new Server();
-
 		await server.open;
+		const games = new GamesWrapper(server);
 
 		id = await resolve_id(server, id);
 
-		console.table(await server.games.show(id));
+		console.table(await games.show(id));
 
 		await server.close();
 	});
@@ -107,12 +109,12 @@ program
 	.argument('id')
 	.action(async id => {
 		const server = new Server();
-
 		await server.open;
+		const games = new GamesWrapper(server);
 
 		id = await resolve_id(server, id, true);
 
-		const deleted = await server.games.delete(id);
+		const deleted = await games.delete(id);
 
 		if (deleted) {
 			console.log('Game deleted.');
@@ -128,11 +130,12 @@ program
 	.argument('[category]')
 	.action(async category => {
 		const server = new Server();
-
 		await server.open;
+		const games = new GamesWrapper(server);
+
 		const list = [];
 
-		for (let game of await server.games.list(category)) {
+		for (let game of await games.list(category)) {
 			const g = { ...game };
 			delete g.index;
 			delete g.controls;

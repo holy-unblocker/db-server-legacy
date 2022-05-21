@@ -1,9 +1,12 @@
 import HTTPErrors from 'http-errors';
+import GamesWrapper from './GamesWrapper.js';
 // import hcaptcha from 'hcaptcha';
 
 const NOT_EXIST = /Game with ID .*? doesn't exist/;
 
 export default async function registerGames(fastify, { cors, server }) {
+	const games = new GamesWrapper(server);
+
 	fastify.route({
 		url: '/',
 		method: 'GET',
@@ -23,10 +26,10 @@ export default async function registerGames(fastify, { cors, server }) {
 		async handler(request, reply) {
 			cors(request, reply);
 
-			const games = await server.games.list(request.query);
+			const list = await games.list(request.query);
 			const send = [];
 
-			for (let game of games) {
+			for (let game of list) {
 				send.push({
 					name: game.name,
 					id: game.id,
@@ -45,8 +48,7 @@ export default async function registerGames(fastify, { cors, server }) {
 			cors(request, reply);
 
 			try {
-				const game = await server.games.show(request.params.id);
-				reply.send(game);
+				reply.send(await games.show(request.params.id));
 			} catch (error) {
 				if (NOT_EXIST.test(error)) {
 					throw new HTTPErrors.NotFound();
@@ -83,7 +85,7 @@ export default async function registerGames(fastify, { cors, server }) {
 					'UPDATE games SET plays = plays + 1 WHERE id = $1',
 					[request.params.id]
 				);
-				const game = await server.games.show(request.params.id);
+				const game = await games.show(request.params.id);
 				reply.send(game);
 			} catch (error) {
 				if (NOT_EXIST.test(error)) {
