@@ -30,7 +30,7 @@ export const GAME_TYPES = [
  * @property {number} plays
  */
 
-export function row_to_game(game) {
+export function row_to(game) {
 	const result = { ...game };
 
 	if ('controls' in result) {
@@ -43,7 +43,7 @@ export function row_to_game(game) {
  *
  * @param {Game} object
  */
-export function validate_game(game) {
+export function validate(game) {
 	if ('id' in game) {
 		if (typeof game.id !== 'string') {
 			throw new TypeError('Game ID was not a string');
@@ -120,7 +120,7 @@ export default class GamesWrapper {
 	 * @param {string} id
 	 * @returns {Game}
 	 */
-	async show_game(id) {
+	async show(id) {
 		const {
 			rows: [row],
 		} = await this.server.client.query('SELECT * FROM games WHERE id = $1', [
@@ -131,7 +131,7 @@ export default class GamesWrapper {
 			throw new RangeError(`Game with ID ${id} doesn't exist.`);
 		}
 
-		const game = row_to_game(row);
+		const game = row_to(row);
 
 		return game;
 	}
@@ -150,7 +150,7 @@ export default class GamesWrapper {
 	 * @param {ListGamesOptions} [options]
 	 * @returns {Game[]}
 	 */
-	async list_games(options = {}) {
+	async list(options = {}) {
 		// 0: select, 1: condition, 2: order, 3: limit
 		const select = [];
 		const conditions = [];
@@ -202,7 +202,7 @@ export default class GamesWrapper {
 
 		const { rows } = await this.server.client.query(query, vars);
 
-		const games = rows.map(row_to_game);
+		const games = rows.map(row_to);
 
 		if (options.leastGreatest === true) {
 			games.reverse();
@@ -213,7 +213,7 @@ export default class GamesWrapper {
 	/**
 	 * @param {string} id
 	 */
-	async delete_game(id) {
+	async delete(id) {
 		const { changes } = await this.server.client.query(
 			'DELETE FROM games WHERE id = $1;',
 			[id]
@@ -229,7 +229,7 @@ export default class GamesWrapper {
 	 * @param {string} category
 	 * @returns {Game}
 	 */
-	async create_game(name, type, src, category, controls) {
+	async create(name, type, src, category, controls) {
 		const game = {
 			id: Math.random().toString(36).slice(2),
 			name,
@@ -240,7 +240,7 @@ export default class GamesWrapper {
 			controls,
 		};
 
-		validate_game(game);
+		validate(game);
 
 		await this.server.client.query(
 			'INSERT INTO games (id, name, type, category, src, plays, controls) VALUES ($1, $2, $3, $4, $5, $6, $7);',
@@ -266,8 +266,8 @@ export default class GamesWrapper {
 	 * @param {string} [category]
 	 * @param {Control[]} [controls]
 	 */
-	async update_game(id, name, type, src, category, controls) {
-		let game = await this.show_game(id);
+	async update(id, name, type, src, category, controls) {
+		let game = await this.show(id);
 
 		if (name === undefined) {
 			name = game.name;
@@ -298,7 +298,7 @@ export default class GamesWrapper {
 			controls,
 		};
 
-		validate_game(game);
+		validate(game);
 
 		await this.server.client.query(
 			'UPDATE games SET name = $1, type = $2, category = $3, src = $4, controls = $5 WHERE id = $6',
