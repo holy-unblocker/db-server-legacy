@@ -148,18 +148,7 @@ export default class GamesWrapper {
 		return game;
 	}
 	/**
-	 *
-	 * @typedef {object} ListGamesOptions
-	 * @property {'name'|'plays'|'search'} [sort]
-	 * @property {boolean} [reverse]
-	 * @property {boolean} [leastGreatest]
-	 * @property {number} [limit]
-	 * @property {number} [limitPerCategory]
-	 * @property {string} [search]
-	 * @property {string} [category]
-	 */
-	/**
-	 * @param {ListGamesOptions} [options]
+	 * @param {{sort?:'name'|'plays'|'search',reverse?:boolean,limit?:number,limitPerCategory?:number,search?:string,category?:string}} [options]
 	 * @returns {Game[]}
 	 */
 	async list(options = {}) {
@@ -183,7 +172,7 @@ export default class GamesWrapper {
 		if (typeof options.limitPerCategory === 'number') {
 			vars.push(options.limitPerCategory);
 			conditions.push(
-				`(SELECT COUNT(*) FROM games b WHERE b."category" = a."category" AND a."index" < b."index") < $${vars.length}`
+				`(SELECT COUNT(*) FROM games b WHERE string_to_array(b."category", ',') && string_to_array(a."category", ',') AND a."index" < b."index") < $${vars.length}`
 			);
 		}
 
@@ -205,7 +194,7 @@ export default class GamesWrapper {
 		}
 
 		if (conditions.length !== 0) {
-			select[1] = `WHERE ${conditions}`;
+			select[1] = `WHERE ${conditions.join('AND')}`;
 		}
 
 		if (typeof options.limit === 'number') {
