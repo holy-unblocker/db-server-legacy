@@ -218,8 +218,6 @@ export default class GamesWrapper {
 				.filter(str => str)
 				.join(' ') + ';';
 
-		console.log(query);
-
 		const { rows } = await this.server.client.query(query, vars);
 
 		const games = rows.map(row_to);
