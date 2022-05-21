@@ -239,7 +239,7 @@ export default class GamesWrapper {
 			[id]
 		);
 
-		return changes !== 0;
+		return !!changes;
 	}
 	/**
 	 *

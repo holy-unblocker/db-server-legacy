@@ -70,7 +70,7 @@ export default class CompatWrapper {
 			[host]
 		);
 
-		return changes !== 0;
+		return !!changes;
 	}
 	/**
 	 *
