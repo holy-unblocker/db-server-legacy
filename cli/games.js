@@ -56,6 +56,12 @@ program
 			controls = [];
 		}
 
+		if (typeof category === 'string') {
+			category = category.split(',');
+		} else {
+			category = [];
+		}
+
 		const game = await games.create(name, type, src, category, controls);
 
 		console.log(`Game created. ID: ${game.id.toString('hex')}`);
@@ -80,6 +86,10 @@ program
 
 		if (typeof controls === 'string') {
 			controls = JSON.parse(controls);
+		}
+
+		if (typeof category === 'string') {
+			category = category.split(',');
 		}
 
 		await games.update(id, name, type, src, category, controls);
@@ -146,3 +156,5 @@ program
 
 		await server.close();
 	});
+
+program.parse(process.argv);

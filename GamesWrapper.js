@@ -25,6 +25,7 @@ export const GAME_TYPES = [
  * @typedef {object} Game
  * @property {'emulator.nes'|'emulator.gba'|'emulator.genesis'|'embed'|'proxy'} type
  * @property {Control[]} controls
+ * @property {string[]} category
  * @property {string} id
  * @property {string} name
  * @property {number} plays
@@ -37,8 +38,13 @@ export function row_to(game) {
 		result.controls = JSON.parse(game.controls);
 	}
 
+	if ('category' in result) {
+		result.category = game.category.split(',');
+	}
+
 	return result;
 }
+
 /**
  *
  * @param {Game} object
@@ -57,8 +63,14 @@ export function validate(game) {
 	}
 
 	if ('category' in game) {
-		if (typeof game.category !== 'string') {
-			throw new TypeError('Game category was not a string');
+		if (!(game.category instanceof Array)) {
+			throw new TypeError('Game category was not an array');
+		}
+
+		for (let category of game.category) {
+			if (typeof category !== 'string') {
+				throw new TypeError('Game category element was not an array');
+			}
 		}
 	}
 
@@ -158,8 +170,14 @@ export default class GamesWrapper {
 		const selection = ['*'];
 
 		if (typeof options.category === 'string') {
-			vars.push(options.category);
-			conditions.push(`category = $${vars.length}`);
+			const list = [];
+			for (let category of options.category.split(',')) {
+				vars.push(category);
+				list.push(`$${vars.length}`);
+			}
+			// split the game category into an array
+			// check if the input categories array has any elements in common with the game category array
+			conditions.push(`string_to_array(category, ',') && ARRAY[${list}]`);
 		}
 
 		if (typeof options.limitPerCategory === 'number') {
@@ -200,6 +218,8 @@ export default class GamesWrapper {
 				.filter(str => str)
 				.join(' ') + ';';
 
+		console.log(query);
+
 		const { rows } = await this.server.client.query(query, vars);
 
 		const games = rows.map(row_to);
@@ -226,7 +246,8 @@ export default class GamesWrapper {
 	 * @param {string} name
 	 * @param {string} type
 	 * @param {string} src
-	 * @param {string} category
+	 * @param {string[]} category
+	 * @param {Control[]} category
 	 * @returns {Game}
 	 */
 	async create(name, type, src, category, controls) {
@@ -248,7 +269,7 @@ export default class GamesWrapper {
 				game.id,
 				game.name,
 				game.type,
-				game.category,
+				game.category.join(','),
 				game.src,
 				game.plays,
 				JSON.stringify(game.controls),
@@ -263,7 +284,7 @@ export default class GamesWrapper {
 	 * @param {string} [name]
 	 * @param {string} [type]
 	 * @param {string} [src]
-	 * @param {string} [category]
+	 * @param {string[]} category
 	 * @param {Control[]} [controls]
 	 */
 	async update(id, name, type, src, category, controls) {
@@ -305,7 +326,7 @@ export default class GamesWrapper {
 			[
 				game.name,
 				game.type,
-				game.category,
+				game.category.join(','),
 				game.src,
 				JSON.stringify(game.controls),
 				game.id,
