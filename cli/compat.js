@@ -11,7 +11,7 @@ program
 	.command('create')
 	.argument('host')
 	.argument('proxy', `<${PROXY_TYPES}>`)
-	.action(async (host, { proxy }) => {
+	.action(async (host, proxy) => {
 		const server = new Server();
 		await server.open;
 		const compat = new CompatWrapper(server);
