@@ -159,6 +159,21 @@ export default async function registerVoucher(
 						}
 					}
 
+					{
+						const resp = await cf.zoneSettings.edit(
+							id,
+							'always_use_https',
+							'{"value":"on"}'
+						);
+
+						if (!resp.success) {
+							console.error('always use https', resp);
+							throw new HTTPErrors.InternalServerError(
+								'Unable to configure domain Always Use HTTPS.'
+							);
+						}
+					}
+
 					for (let record of DNS) {
 						const resp = await cf.dnsRecords.add(id, record);
 
