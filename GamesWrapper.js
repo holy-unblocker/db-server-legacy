@@ -221,12 +221,12 @@ export default class GamesWrapper {
 	 * @param {string} id
 	 */
 	async delete(id) {
-		const { changes } = await this.server.client.query(
+		const { rowCount } = await this.server.client.query(
 			'DELETE FROM games WHERE id = $1;',
 			[id]
 		);
 
-		return !!changes;
+		return rowCount !== 0;
 	}
 	/**
 	 *

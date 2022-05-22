@@ -65,12 +65,12 @@ export default class CompatWrapper {
 	 * @param {string} host
 	 */
 	async delete(host) {
-		const { changes } = await this.server.client.query(
+		const { rowCount } = await this.server.client.query(
 			'DELETE FROM compat WHERE host = $1;',
 			[host]
 		);
 
-		return !!changes;
+		return rowCount !== 0;
 	}
 	/**
 	 *

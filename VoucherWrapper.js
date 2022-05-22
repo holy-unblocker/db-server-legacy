@@ -64,12 +64,12 @@ export default class VoucherWrapper {
 	 * @param {string} code
 	 */
 	async delete(code) {
-		const { changes } = await this.server.client.query(
+		const { rowCount } = await this.server.client.query(
 			'DELETE FROM vouchers WHERE code = $1;',
 			[code]
 		);
 
-		return !!changes;
+		return rowCount !== 0;
 	}
 	/**
 	 *
