@@ -1,11 +1,11 @@
 import HTTPErrors from 'http-errors';
-import GamesWrapper from './GamesWrapper.js';
+import TheatreWrapper from './TheatreWrapper.js';
 // import hcaptcha from 'hcaptcha';
 
-const NOT_EXIST = /Game with ID .*? doesn't exist/;
+const NOT_EXIST = /Entry with ID .*? doesn't exist/;
 
-export default async function registerGames(fastify, { cors, server }) {
-	const games = new GamesWrapper(server);
+export default async function registerTheatre(fastify, { cors, server }) {
+	const theatre = new TheatreWrapper(server);
 
 	fastify.route({
 		url: '/',
@@ -26,14 +26,13 @@ export default async function registerGames(fastify, { cors, server }) {
 		async handler(request, reply) {
 			cors(request, reply);
 
-			const list = await games.list(request.query);
 			const send = [];
 
-			for (let game of list) {
+			for (let entry of await theatre.list(request.query)) {
 				send.push({
-					name: game.name,
-					id: game.id,
-					category: game.category,
+					name: entry.name,
+					id: entry.id,
+					category: entry.category,
 				});
 			}
 
@@ -48,7 +47,7 @@ export default async function registerGames(fastify, { cors, server }) {
 			cors(request, reply);
 
 			try {
-				reply.send(await games.show(request.params.id));
+				reply.send(await theatre.show(request.params.id));
 			} catch (error) {
 				if (NOT_EXIST.test(error)) {
 					throw new HTTPErrors.NotFound();
@@ -81,12 +80,7 @@ export default async function registerGames(fastify, { cors, server }) {
 			}*/
 
 			try {
-				await server.client.query(
-					'UPDATE games SET plays = plays + 1 WHERE id = $1',
-					[request.params.id]
-				);
-				const game = await games.show(request.params.id);
-				reply.send(game);
+				await theatre.count_play(request.params.id);
 			} catch (error) {
 				if (NOT_EXIST.test(error)) {
 					throw new HTTPErrors.NotFound();

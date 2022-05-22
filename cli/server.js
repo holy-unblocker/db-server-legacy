@@ -4,7 +4,7 @@ config();
 import { Command } from 'commander';
 import Fastify from 'fastify';
 import Server from '../Server.js';
-import registerGames from '../registerGames.js';
+import registerTheatre from '../registerTheatre.js';
 import registerCompat from '../registerCompat.js';
 import registerVoucher from '../registerVoucher.js';
 
@@ -78,8 +78,8 @@ program
 				},
 			});
 
-			fastify.register(registerGames, {
-				prefix: '/games',
+			fastify.register(registerTheatre, {
+				prefix: '/theatre',
 				server,
 				cors,
 				hcaptchaSecret,

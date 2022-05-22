@@ -1,4 +1,4 @@
-export const GAME_TYPES = [
+export const THEATRE_TYPES = [
 	'emulator.nes',
 	'emulator.gba',
 	'emulator.genesis',
@@ -22,7 +22,7 @@ export const GAME_TYPES = [
  */
 
 /**
- * @typedef {object} Game
+ * @typedef {object} TheatreEntry
  * @property {'emulator.nes'|'emulator.gba'|'emulator.genesis'|'embed'|'proxy'} type
  * @property {Control[]} controls
  * @property {string[]} category
@@ -31,15 +31,15 @@ export const GAME_TYPES = [
  * @property {number} plays
  */
 
-export function row_to(game) {
-	const result = { ...game };
+export function row_to(entry) {
+	const result = { ...entry };
 
 	if ('controls' in result) {
-		result.controls = JSON.parse(game.controls);
+		result.controls = JSON.parse(entry.controls);
 	}
 
 	if ('category' in result) {
-		result.category = game.category.split(',');
+		result.category = entry.category.split(',');
 	}
 
 	return result;
@@ -47,61 +47,61 @@ export function row_to(game) {
 
 /**
  *
- * @param {Game} object
+ * @param {TheatreEntry} object
  */
-export function validate(game) {
-	if ('id' in game) {
-		if (typeof game.id !== 'string') {
-			throw new TypeError('Game ID was not a string');
+export function validate(entry) {
+	if ('id' in entry) {
+		if (typeof entry.id !== 'string') {
+			throw new TypeError('Entry ID was not a string');
 		}
 	}
 
-	if ('name' in game) {
-		if (typeof game.name !== 'string') {
-			throw new TypeError('Game name was not a string');
+	if ('name' in entry) {
+		if (typeof entry.name !== 'string') {
+			throw new TypeError('Entry name was not a string');
 		}
 	}
 
-	if ('category' in game) {
-		if (!(game.category instanceof Array)) {
-			throw new TypeError('Game category was not an array');
+	if ('category' in entry) {
+		if (!(entry.category instanceof Array)) {
+			throw new TypeError('Entry category was not an array');
 		}
 
-		for (let category of game.category) {
+		for (let category of entry.category) {
 			if (typeof category !== 'string') {
-				throw new TypeError('Game category element was not an array');
+				throw new TypeError('Entry category element was not an array');
 			}
 		}
 	}
 
-	if ('controls' in game) {
-		if (!(game.controls instanceof Array)) {
-			throw new TypeError('Game controls was not an array');
+	if ('controls' in entry) {
+		if (!(entry.controls instanceof Array)) {
+			throw new TypeError('Entry controls was not an array');
 		}
 	}
 
-	if ('src' in game) {
-		if (typeof game.src !== 'string') {
-			throw new TypeError('Game src was not a string');
+	if ('src' in entry) {
+		if (typeof entry.src !== 'string') {
+			throw new TypeError('Entry src was not a string');
 		}
 	}
 
-	if ('plays' in game) {
-		if (typeof game.plays !== 'number') {
-			throw new TypeError('Game plays was not a number');
+	if ('plays' in entry) {
+		if (typeof entry.plays !== 'number') {
+			throw new TypeError('Entry plays was not a number');
 		}
 	}
 
-	if ('type' in game) {
-		if (!GAME_TYPES.includes(game.type)) {
+	if ('type' in entry) {
+		if (!THEATRE_TYPES.includes(entry.type)) {
 			throw new TypeError(
-				`Game type was not one of the following: ${GAME_TYPES}`
+				`Entry type was not one of the following: ${THEATRE_TYPES}`
 			);
 		}
 	}
 }
 
-export default class GamesWrapper {
+export default class TheatreWrapper {
 	constructor(server) {
 		/**
 		 * @type {import('./Server.js').default}
@@ -117,12 +117,12 @@ export default class GamesWrapper {
 		const {
 			rows: [result],
 		} = await this.server.client.query(
-			'SELECT id FROM games WHERE index = $1;',
+			'SELECT id FROM theatre WHERE index = $1;',
 			[index]
 		);
 
 		if (result === undefined) {
-			throw new RangeError(`Game doesn't exist at index ${index}.`);
+			throw new RangeError(`Entry doesn't exist at index ${index}.`);
 		}
 
 		return result.id;
@@ -130,26 +130,24 @@ export default class GamesWrapper {
 	/**
 	 *
 	 * @param {string} id
-	 * @returns {Game}
+	 * @returns {TheatreEntry}
 	 */
 	async show(id) {
 		const {
 			rows: [row],
-		} = await this.server.client.query('SELECT * FROM games WHERE id = $1', [
+		} = await this.server.client.query('SELECT * FROM theatre WHERE id = $1', [
 			id,
 		]);
 
 		if (row === undefined) {
-			throw new RangeError(`Game with ID ${id} doesn't exist.`);
+			throw new RangeError(`Entry with ID ${id} doesn't exist.`);
 		}
 
-		const game = row_to(row);
-
-		return game;
+		return row_to(row);
 	}
 	/**
 	 * @param {{sort?:'name'|'plays'|'search',reverse?:boolean,limit?:number,limitPerCategory?:number,search?:string,category?:string}} [options]
-	 * @returns {Game[]}
+	 * @returns {TheatreEntry[]}
 	 */
 	async list(options = {}) {
 		// 0: select, 1: condition, 2: order, 3: limit
@@ -164,15 +162,15 @@ export default class GamesWrapper {
 				vars.push(category);
 				list.push(`$${vars.length}`);
 			}
-			// split the game category into an array
-			// check if the input categories array has any elements in common with the game category array
+			// split the entry category into an array
+			// check if the input categories array has any elements in common with the entry category array
 			conditions.push(`string_to_array(category, ',') && ARRAY[${list}]`);
 		}
 
 		if (typeof options.limitPerCategory === 'number') {
 			vars.push(options.limitPerCategory);
 			conditions.push(
-				`(SELECT COUNT(*) FROM games b WHERE string_to_array(b."category", ',') && string_to_array(a."category", ',') AND a."index" < b."index") < $${vars.length}`
+				`(SELECT COUNT(*) FROM theatre b WHERE string_to_array(b."category", ',') && string_to_array(a."category", ',') AND a."index" < b."index") < $${vars.length}`
 			);
 		}
 
@@ -203,26 +201,26 @@ export default class GamesWrapper {
 		}
 
 		const query =
-			['SELECT', selection.join(', '), 'FROM games a', ...select]
+			['SELECT', selection.join(', '), 'FROM theatre a', ...select]
 				.filter(str => str)
 				.join(' ') + ';';
 
 		const { rows } = await this.server.client.query(query, vars);
 
-		const games = rows.map(row_to);
+		const entries = rows.map(row_to);
 
 		if (options.leastGreatest === true) {
-			games.reverse();
+			entries.reverse();
 		}
 
-		return games;
+		return entries;
 	}
 	/**
 	 * @param {string} id
 	 */
 	async delete(id) {
 		const { rowCount } = await this.server.client.query(
-			'DELETE FROM games WHERE id = $1;',
+			'DELETE FROM theatre WHERE id = $1;',
 			[id]
 		);
 
@@ -235,10 +233,10 @@ export default class GamesWrapper {
 	 * @param {string} src
 	 * @param {string[]} category
 	 * @param {Control[]} category
-	 * @returns {Game}
+	 * @returns {TheatreEntry}
 	 */
 	async create(name, type, src, category, controls) {
-		const game = {
+		const entry = {
 			id: Math.random().toString(36).slice(2),
 			name,
 			type,
@@ -248,22 +246,22 @@ export default class GamesWrapper {
 			controls,
 		};
 
-		validate(game);
+		validate(entry);
 
 		await this.server.client.query(
-			'INSERT INTO games (id, name, type, category, src, plays, controls) VALUES ($1, $2, $3, $4, $5, $6, $7);',
+			'INSERT INTO theatre (id, name, type, category, src, plays, controls) VALUES ($1, $2, $3, $4, $5, $6, $7);',
 			[
-				game.id,
-				game.name,
-				game.type,
-				game.category.join(','),
-				game.src,
-				game.plays,
-				JSON.stringify(game.controls),
+				entry.id,
+				entry.name,
+				entry.type,
+				entry.category.join(','),
+				entry.src,
+				entry.plays,
+				JSON.stringify(entry.controls),
 			]
 		);
 
-		return game;
+		return entry;
 	}
 	/**
 	 *
@@ -275,29 +273,29 @@ export default class GamesWrapper {
 	 * @param {Control[]} [controls]
 	 */
 	async update(id, name, type, src, category, controls) {
-		let game = await this.show(id);
+		let entry = await this.show(id);
 
 		if (name === undefined) {
-			name = game.name;
+			name = entry.name;
 		}
 
 		if (type === undefined) {
-			type = game.type;
+			type = entry.type;
 		}
 
 		if (src === undefined) {
-			src = game.src;
+			src = entry.src;
 		}
 
 		if (category === undefined) {
-			category = game.category;
+			category = entry.category;
 		}
 
 		if (controls === undefined) {
-			controls = game.controls;
+			controls = entry.controls;
 		}
 
-		game = {
+		entry = {
 			id,
 			name,
 			type,
@@ -306,20 +304,32 @@ export default class GamesWrapper {
 			controls,
 		};
 
-		validate(game);
+		validate(entry);
 
 		await this.server.client.query(
-			'UPDATE games SET name = $1, type = $2, category = $3, src = $4, controls = $5 WHERE id = $6',
+			'UPDATE theatre SET name = $1, type = $2, category = $3, src = $4, controls = $5 WHERE id = $6',
 			[
-				game.name,
-				game.type,
-				game.category.join(','),
-				game.src,
-				JSON.stringify(game.controls),
-				game.id,
+				entry.name,
+				entry.type,
+				entry.category.join(','),
+				entry.src,
+				JSON.stringify(entry.controls),
+				entry.id,
 			]
 		);
 
-		return game;
+		return entry;
+	}
+	/**
+	 *
+	 * @param {string} id
+	 */
+	async count_play(id) {
+		const { rowCount } = await this.server.client.query(
+			'UPDATE theatre SET plays = plays + 1 WHERE id = $1',
+			[id]
+		);
+
+		return rowCount !== 0;
 	}
 }

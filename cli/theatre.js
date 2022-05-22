@@ -1,7 +1,7 @@
 import { config } from 'dotenv-flow';
 config();
 
-import GamesWrapper, { GAME_TYPES } from '../GamesWrapper.js';
+import TheatreWrapper, { THEATRE_TYPES } from '../TheatreWrapper.js';
 import { Command } from 'commander';
 import promptly from 'promptly';
 import Server from '../Server.js';
@@ -13,7 +13,7 @@ import Server from '../Server.js';
  * @returns
  */
 async function resolve_id(server, i, confirm) {
-	const games = new GamesWrapper(server);
+	const games = new TheatreWrapper(server);
 
 	if (!isNaN(i)) {
 		const id = await games.id_at_index(i);
@@ -43,12 +43,12 @@ program
 	.requiredOption('-n, --name <name>')
 	.requiredOption('-c, --category <category>')
 	.option('-co, --controls <controls>')
-	.requiredOption(`-t, --type <${GAME_TYPES}>`)
+	.requiredOption(`-t, --type <${THEATRE_TYPES}>`)
 	.requiredOption('-s, --src <url>')
 	.action(async ({ name, type, src, category, controls }) => {
 		const server = new Server();
 		await server.open;
-		const games = new GamesWrapper(server);
+		const games = new TheatreWrapper(server);
 
 		if (typeof controls === 'string') {
 			controls = JSON.parse(controls);
@@ -75,12 +75,12 @@ program
 	.option('-n, --name <name>')
 	.option('-c, --category <category>')
 	.option('-co, --controls <controls>')
-	.option(`-t, --type <${GAME_TYPES}>`)
+	.option(`-t, --type <${THEATRE_TYPES}>`)
 	.option('-s, --src <url>')
 	.action(async (id, { name, type, src, category, controls }) => {
 		const server = new Server();
 		await server.open;
-		const games = new GamesWrapper(server);
+		const games = new TheatreWrapper(server);
 
 		id = await resolve_id(server, id);
 
@@ -105,7 +105,7 @@ program
 	.action(async id => {
 		const server = new Server();
 		await server.open;
-		const games = new GamesWrapper(server);
+		const games = new TheatreWrapper(server);
 
 		id = await resolve_id(server, id);
 
@@ -120,7 +120,7 @@ program
 	.action(async id => {
 		const server = new Server();
 		await server.open;
-		const games = new GamesWrapper(server);
+		const games = new TheatreWrapper(server);
 
 		id = await resolve_id(server, id, true);
 
@@ -141,7 +141,7 @@ program
 	.action(async category => {
 		const server = new Server();
 		await server.open;
-		const games = new GamesWrapper(server);
+		const games = new TheatreWrapper(server);
 
 		const list = [];
 
