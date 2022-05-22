@@ -10,7 +10,7 @@ const program = new Command();
 program
 	.command('create')
 	.argument('host')
-	.requiredOption(`-p, --proxy <${PROXY_TYPES}>`)
+	.argument('proxy', `<${PROXY_TYPES}>`)
 	.action(async (host, { proxy }) => {
 		const server = new Server();
 		await server.open;
@@ -26,8 +26,8 @@ program
 program
 	.command('update')
 	.argument('host')
-	.option(`-p, --proxy <${PROXY_TYPES}>`)
-	.action(async (host, { proxy }) => {
+	.argument('proxy', `<${PROXY_TYPES}>`))
+	.action(async (host, proxy) => {
 		const server = new Server();
 
 		await server.open;
