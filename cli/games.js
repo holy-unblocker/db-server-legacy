@@ -72,7 +72,7 @@ program
 program
 	.command('update')
 	.argument('id')
-	.argument('name')
+	.option('-n, --name <name>')
 	.option('-c, --category <category>')
 	.option('-co, --controls <controls>')
 	.option(`-t, --type <${GAME_TYPES}>`)
