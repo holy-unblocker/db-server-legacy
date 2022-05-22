@@ -89,17 +89,17 @@ program
 				prefix: '/compat',
 				server,
 				cors,
-				nameserver1,
-				nameserver2,
-				cfEmail,
-				cfKey,
-				namesiloKey,
 			});
 
 			fastify.register(registerVoucher, {
 				prefix: '/vouchers',
 				server,
 				cors,
+				nameserver1,
+				nameserver2,
+				cfEmail,
+				cfKey,
+				namesiloKey,
 			});
 
 			fastify.listen(port, host, (error, url) => {
