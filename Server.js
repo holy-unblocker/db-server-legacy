@@ -29,7 +29,7 @@ export default class Server {
 		// \c holy
 		// CREATE EXTENSION pg_trgm;
 
-		await this.client.query(`CREATE TABLE IF NOT EXISTS games (
+		await this.client.query(`CREATE TABLE IF NOT EXISTS theatre (
 			index SERIAL,
 			id TEXT PRIMARY KEY NOT NULL UNIQUE,
 			name TEXT NOT NULL,
@@ -41,7 +41,7 @@ export default class Server {
 		);`);
 
 		await this.client.query(
-			'CREATE INDEX IF NOT EXISTS trgm_idx ON games USING GIST (name gist_trgm_ops);'
+			'CREATE INDEX IF NOT EXISTS trgm_idx ON theatre USING GIST (name gist_trgm_ops);'
 		);
 
 		await this.client.query(`CREATE TABLE IF NOT EXISTS compat (
