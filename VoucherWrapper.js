@@ -29,7 +29,7 @@ export function validate_voucher(voucher) {
 export default class VoucherWrapper {
 	constructor(server) {
 		/**
-		 * @type {import('../voucher-backend/Server.js').default}
+		 * @type {import('./Server.js').default}
 		 */
 		this.server = server;
 	}
@@ -39,35 +39,37 @@ export default class VoucherWrapper {
 	 * @returns {Voucher}
 	 */
 	async show(code) {
-		const result = await this.server.client.get(
+		const {
+			rows: [row],
+		} = await this.server.client.query(
 			'SELECT * FROM vouchers WHERE code = $1',
 			[code]
 		);
 
-		if (result === undefined) {
+		if (row === undefined) {
 			throw new RangeError(`Voucher with code ${code} doesn't exist.`);
 		}
 
-		return result;
+		return row;
 	}
 	/**
 	 * @returns {Voucher[]}
 	 */
 	async list() {
-		const vouchers = await this.server.client.all('SELECT * FROM vouchers;');
+		const { rows } = await this.server.client.query('SELECT * FROM vouchers;');
 
-		return vouchers;
+		return rows;
 	}
 	/**
 	 * @param {string} code
 	 */
 	async delete(code) {
-		const { changes } = await this.server.client.run(
+		const { changes } = await this.server.client.query(
 			'DELETE FROM vouchers WHERE code = $1;',
 			[code]
 		);
 
-		return changes !== 0;
+		return !!changes;
 	}
 	/**
 	 *
@@ -82,7 +84,7 @@ export default class VoucherWrapper {
 
 		validate_voucher(voucher);
 
-		await this.server.client.run(
+		await this.server.client.query(
 			'INSERT INTO vouchers (code, tld) VALUES ($1, $2);',
 			[voucher.code, voucher.tld]
 		);
@@ -108,7 +110,7 @@ export default class VoucherWrapper {
 
 		validate_voucher(voucher);
 
-		await this.server.client.run(
+		await this.server.client.query(
 			'UPDATE vouchers SET tld = $1 WHERE code = $2',
 			[voucher.tld, voucher.code]
 		);

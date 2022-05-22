@@ -48,5 +48,10 @@ export default class Server {
 			host TEXT PRIMARY KEY NOT NULL UNIQUE,
 			proxy TEXT NOT NULL
 		);`);
+
+		await this.client.query(`CREATE TABLE IF NOT EXISTS vouchers (
+			code TEXT PRIMARY KEY NOT NULL UNIQUE,
+			tld TEXT NOT NULL
+		);`);
 	}
 }
