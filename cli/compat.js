@@ -26,7 +26,7 @@ program
 program
 	.command('update')
 	.argument('host')
-	.argument('proxy', `<${PROXY_TYPES}>`))
+	.argument('proxy', `<${PROXY_TYPES}>`)
 	.action(async (host, proxy) => {
 		const server = new Server();
 
