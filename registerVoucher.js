@@ -116,7 +116,6 @@ export default async function registerVoucher(
 					}
 				}
 
-				// eslint-disable-next-line no-unreachable
 				await voucher.delete(request.params.voucher);
 
 				// REGISTER
