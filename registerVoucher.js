@@ -94,9 +94,30 @@ export default async function registerVoucher(
 					throw new HTTPErrors.BadRequest('Invalid domain name.');
 				}
 
-				await voucher.delete(request.params.voucher);
-
 				const host = `${request.body.domain}${tld}`;
+
+				// AVABILITY
+				{
+					const request = await fetch(
+						'https://www.namesilo.com/api/checkRegisterAvailability?' +
+							new URLSearchParams({
+								version: 1,
+								type: 'xml',
+								key: namesiloKey,
+								domains: host,
+							})
+					);
+
+					const text = await request.text();
+
+					if (!text.includes('<available>')) {
+						console.error(text);
+						throw new HTTPErrors.NotFound('Domain unavailable.');
+					}
+				}
+
+				// eslint-disable-next-line no-unreachable
+				await voucher.delete(request.params.voucher);
 
 				// REGISTER
 				console.log('REGISTER', host);
