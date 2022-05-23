@@ -111,7 +111,7 @@ export default async function registerVoucher(
 								ns2: nameserver2,
 								domain: host,
 								years: 1,
-								private: 1,
+								private: tld !== '.us',
 								auto_renew: 0,
 							})
 					);
