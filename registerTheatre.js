@@ -81,6 +81,7 @@ export default async function registerTheatre(fastify, { cors, server }) {
 
 			try {
 				await theatre.count_play(request.params.id);
+				reply.send({});
 			} catch (error) {
 				if (NOT_EXIST.test(error)) {
 					throw new HTTPErrors.NotFound();
