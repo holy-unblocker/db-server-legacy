@@ -1,14 +1,40 @@
 [
-	{ "name": "rh", "type": "CNAME", "content": "rh.holy.how", "proxied": true },
-	{ "name": "uv", "type": "CNAME", "content": "uv.holy.how", "proxied": true },
-	{ "name": "a", "type": "CNAME", "content": "a.holy.how", "proxied": true },
+	{
+		"name": "rh",
+		"type": "CNAME",
+		"content": "rh.holy.how",
+		"proxied": true
+	},
+	{
+		"name": "uv",
+		"type": "CNAME",
+		"content": "uv.holy.how",
+		"proxied": true
+	},
+	{
+		"name": "a",
+		"type": "CNAME",
+		"content": "a.holy.how",
+		"proxied": true
+	},
 	{
 		"name": "@",
 		"type": "CNAME",
 		"content": "static.holy.how",
 		"proxied": true
 	},
-	{ "name": "wm", "type": "CNAME", "content": "wm.holy.how", "proxied": true },
+	{
+		"name": "www",
+		"type": "CNAME",
+		"content": "static.holy.how",
+		"proxied": true
+	},
+	{
+		"name": "wm",
+		"type": "CNAME",
+		"content": "wm.holy.how",
+		"proxied": true
+	},
 	{
 		"name": "paln",
 		"type": "CNAME",
