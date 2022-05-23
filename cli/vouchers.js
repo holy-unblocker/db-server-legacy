@@ -26,9 +26,9 @@ program
 
 program
 	.command('bulk-create')
-	.argument(`<${TLD_TYPES}>`)
-	.argument('<amount>', 'Amount of vouchers to create')
-	.action(async (amount, tld) => {
+	.argument('tld', `<${TLD_TYPES}>`)
+	.argument('amount', 'Amount of vouchers to create')
+	.action(async (tld, amount) => {
 		const server = new Server();
 		await server.open;
 		const voucher = new VoucherWrapper(server);
