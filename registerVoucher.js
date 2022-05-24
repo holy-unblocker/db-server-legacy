@@ -202,14 +202,14 @@ export default async function registerVoucher(
 							throw new HTTPErrors('Unable to add DNS records.');
 						}
 					}
-
-					console.log('registered', host);
-
-					reply.send({
-						tld,
-						host,
-					});
 				}
+
+				console.log('REGISTERED', host);
+
+				reply.send({
+					tld,
+					host,
+				});
 			} catch (error) {
 				if (NOT_EXIST.test(error)) {
 					throw new HTTPErrors.NotFound('Invalid voucher.');
