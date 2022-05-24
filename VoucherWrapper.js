@@ -1,5 +1,14 @@
 export const TLD_TYPES = ['.com', '.org', '.net', '.us', '.xyz'];
 
+// (rounded to nearest whole)
+export const FLOOR_TLD_PRICES = {
+	'.com': 10,
+	'.org': 11,
+	'.net': 12,
+	'.us': 3,
+	'.xyz': 1,
+};
+
 /**
  * @typedef {object} Voucher
  * @property {string} code

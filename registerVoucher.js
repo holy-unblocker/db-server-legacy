@@ -1,10 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { XMLParser } from 'fast-xml-parser';
 import HTTPErrors from 'http-errors';
 import fetch from 'node-fetch';
 import Cloudflare from 'cloudflare';
-import VoucherWrapper from './VoucherWrapper.js';
+import VoucherWrapper, { FLOOR_TLD_PRICES } from './VoucherWrapper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,6 +13,12 @@ const DNS = JSON.parse(await readFile(join(__dirname, 'DNS.json')));
 
 const NOT_EXIST = /Voucher with code .*? doesn't exist/;
 const VALID_DOMAIN_NAME = /^[a-z0-9-]*$/i;
+
+/**
+ *
+ * @typedef {object} NamesiloAPI
+ * @property {{request:{operation:string,ip:string},reply:{code:number,detail:string}}} namesilo
+ */
 
 export default async function registerVoucher(
 	fastify,
@@ -63,6 +70,10 @@ export default async function registerVoucher(
 		},
 	});
 
+	const xml = new XMLParser({
+		ignoreAttributes: false,
+	});
+
 	fastify.route({
 		url: '/:voucher/',
 		method: 'POST',
@@ -88,6 +99,14 @@ export default async function registerVoucher(
 			try {
 				const { tld } = await voucher.show(request.params.voucher);
 
+				const floor_price = FLOOR_TLD_PRICES[tld];
+
+				if (isNaN(floor_price)) {
+					const log = `Missing floor price for TLD ${tld}.`;
+					console.error(log);
+					throw new HTTPErrors.InternalServerError(log);
+				}
+
 				// if not thrown, the code is valid
 
 				if (!VALID_DOMAIN_NAME.test(request.body.domain)) {
@@ -108,11 +127,19 @@ export default async function registerVoucher(
 							})
 					);
 
-					const text = await request.text();
+					/**
+					 * @type {NamesiloAPI}
+					 */
+					const data = xml.parse(await request.text());
 
-					if (!text.includes('<available>')) {
-						console.error(text);
+					if (!data.namesilo.reply.available) {
 						throw new HTTPErrors.NotFound('Domain unavailable.');
+					}
+
+					const price = Number(data.namesilo.reply.available.domain['@_price']);
+
+					if (isNaN(price) || price > floor_price) {
+						throw HTTPErrors.BadRequest('Domain price exceeds limit.');
 					}
 				}
 
@@ -136,10 +163,13 @@ export default async function registerVoucher(
 							})
 					);
 
-					const text = await request.text();
+					/**
+					 * @type {NamesiloAPI}
+					 */
+					const data = xml.parse(await request.text());
 
-					if (!text.includes('successfully processed.')) {
-						console.error(text);
+					if (data.namesilo.reply.detail !== 'success') {
+						console.error(data.namesilo.reply);
 						throw new HTTPErrors.InternalServerError(
 							'Unable to register domain.'
 						);
