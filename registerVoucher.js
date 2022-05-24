@@ -146,6 +146,9 @@ export default async function registerVoucher(
 					}
 				}
 
+				console.log('delaying configuration', host);
+				await new Promise(resolve => setTimeout(resolve), 25e3);
+
 				// CONFIGURE
 				console.log('configure', host);
 				{
