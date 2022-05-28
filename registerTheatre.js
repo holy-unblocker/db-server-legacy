@@ -18,6 +18,7 @@ export default async function registerTheatre(fastify, { cors, server }) {
 					sort: { type: 'string' },
 					category: { type: 'string' },
 					search: { type: 'string' },
+					offset: { type: 'number' },
 					limit: { type: 'number' },
 					limitPerCategory: { type: 'number' },
 				},
@@ -26,17 +27,22 @@ export default async function registerTheatre(fastify, { cors, server }) {
 		async handler(request, reply) {
 			cors(request, reply);
 
-			const send = [];
+			const data = await theatre.list(request.query);
 
-			for (let entry of await theatre.list(request.query)) {
-				send.push({
+			const send = {
+				entries: [],
+				total: data.total,
+			};
+
+			for (let entry of data.entries) {
+				send.entries.push({
 					name: entry.name,
 					id: entry.id,
 					category: entry.category,
 				});
 			}
 
-			reply.send(send);
+			reply.send(data);
 		},
 	});
 

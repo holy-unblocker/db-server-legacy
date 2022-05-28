@@ -146,15 +146,15 @@ export default class TheatreWrapper {
 		return row_to(row);
 	}
 	/**
-	 * @param {{sort?:'name'|'plays'|'search',reverse?:boolean,limit?:number,limitPerCategory?:number,search?:string,category?:string}} [options]
-	 * @returns {TheatreEntry[]}
+	 * @param {{sort?:'name'|'plays'|'search',reverse?:boolean,limit?:number,offset?:number,limitPerCategory?:number,search?:string,category?:string}} [options]
+	 * @returns {{total:TheatreEntry[],entries:TheatreEntry[]}}
 	 */
 	async list(options = {}) {
-		// 0: select, 1: condition, 2: order, 3: limit
+		// 0: select, 1: condition, 2: order, 3: limit, 4: offset
 		const select = [];
 		const conditions = [];
 		const vars = [];
-		const selection = ['*'];
+		const selection = ['*', 'count(*) OVER() AS total'];
 
 		if (typeof options.category === 'string') {
 			const list = [];
@@ -200,12 +200,21 @@ export default class TheatreWrapper {
 			select[3] = `LIMIT $${vars.length}`;
 		}
 
+		if (typeof options.offset === 'number') {
+			vars.push(options.offset);
+			select[4] = `OFFSET $${vars.length}`;
+		}
+
 		const query =
 			['SELECT', selection.join(', '), 'FROM theatre a', ...select]
 				.filter(str => str)
 				.join(' ') + ';';
 
+		console.log(query);
+
 		const { rows } = await this.server.client.query(query, vars);
+
+		const total = parseInt(rows[0]?.total);
 
 		const entries = rows.map(row_to);
 
@@ -213,7 +222,10 @@ export default class TheatreWrapper {
 			entries.reverse();
 		}
 
-		return entries;
+		return {
+			total,
+			entries,
+		};
 	}
 	/**
 	 * @param {string} id
