@@ -3,46 +3,10 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { XMLParser } from 'fast-xml-parser';
 import HTTPErrors from 'http-errors';
-import fetch, { Headers } from 'node-fetch';
+import fetch from 'node-fetch';
+import { fetchCloudflare } from './CloudflareCommon.js';
 import Cloudflare from 'cloudflare';
 import VoucherWrapper, { FLOOR_TLD_PRICES } from './VoucherWrapper.js';
-
-/**
- *
- * @param {string} key
- * @param {string} email
- * @param {string|url} url
- * @param {{method:string,body:string}} [cf_init]
- * @returns {object}
- */
-async function fetchCloudflare(key, email, url, cf_init = {}) {
-	const init = {
-		headers: new Headers({
-			'x-auth-key': key,
-			'x-auth-email': email,
-		}),
-		method: cf_init.method,
-	};
-
-	if (cf_init.body !== undefined) {
-		init.headers.set('content-type', 'application/json');
-		init.body = JSON.stringify(cf_init.body);
-	}
-
-	const request = await fetch(
-		new URL(url, 'https://api.cloudflare.com/client/'),
-		init
-	);
-
-	const text = await request.text();
-
-	try {
-		return JSON.parse(text);
-	} catch (error) {
-		console.log(text);
-		throw error;
-	}
-}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -285,20 +249,6 @@ export default async function registerVoucher(
 									target: 'url',
 									constraint: {
 										operator: 'matches',
-										value: `${host}/thumbnails/*`,
-									},
-								},
-							],
-						},
-						{
-							status: 'active',
-							priority: 1,
-							actions: [{ id: 'cache_level', value: 'cache_everything' }],
-							targets: [
-								{
-									target: 'url',
-									constraint: {
-										operator: 'matches',
 										value: `${host}/static/*`,
 									},
 								},
@@ -322,18 +272,18 @@ export default async function registerVoucher(
 
 					await Promise.all(
 						rules.map(async rule => {
-							const resp = await fetchCloudflare(
-								cfKey,
-								cfEmail,
-								`v4/zones/${id}/pagerules`,
-								{
-									method: 'POST',
-									body: rule,
-								}
-							);
-
-							if (!resp.success) {
-								console.error('Failure adding page rule:', rule, resp);
+							try {
+								await fetchCloudflare(
+									cfKey,
+									cfEmail,
+									`v4/zones/${id}/pagerules`,
+									{
+										method: 'POST',
+										body: rule,
+									}
+								);
+							} catch (error) {
+								console.error('Failure adding page rule:', rule, error);
 								throw new HTTPErrors('Unable to add page rules.');
 							}
 						})
