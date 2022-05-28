@@ -3,9 +3,44 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { XMLParser } from 'fast-xml-parser';
 import HTTPErrors from 'http-errors';
-import fetch from 'node-fetch';
+import fetch, { Headers } from 'node-fetch';
 import Cloudflare from 'cloudflare';
 import VoucherWrapper, { FLOOR_TLD_PRICES } from './VoucherWrapper.js';
+
+async function fetchCloudflare(
+	url,
+	key,
+	email,
+	{ method, body, headers = {} } = {}
+) {
+	const init = {
+		headers: new Headers({
+			'x-auth-key': key,
+			'x-auth-email': email,
+			...headers,
+		}),
+		method,
+	};
+
+	if (body !== undefined) {
+		init.headers.set('content-type', 'application/json');
+		init.body = JSON.stringify(body);
+	}
+
+	const request = await fetch(
+		new URL(url, 'https://api.cloudflare.com/client/'),
+		init
+	);
+
+	const text = await request.text();
+
+	try {
+		return JSON.parse(text);
+	} catch (error) {
+		console.log(text);
+		throw error;
+	}
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -222,7 +257,7 @@ export default async function registerVoucher(
 						if (!resp.success) {
 							console.error('always use https', resp);
 							throw new HTTPErrors.InternalServerError(
-								'Unable to configure domain Always Use HTTPS.'
+								'Unable to enable Always Use HTTPS.'
 							);
 						}
 					}
@@ -233,6 +268,68 @@ export default async function registerVoucher(
 						if (!resp.success) {
 							console.error(record, resp);
 							throw new HTTPErrors('Unable to add DNS records.');
+						}
+					}
+
+					const rules = [
+						{
+							status: 'active',
+							priority: 1,
+							actions: [{ id: 'cache_level', value: 'cache_everything' }],
+							targets: [
+								{
+									target: 'url',
+									constraint: {
+										operator: 'matches',
+										value: `${host}/thumbnails/*`,
+									},
+								},
+							],
+						},
+						{
+							status: 'active',
+							priority: 1,
+							actions: [{ id: 'cache_level', value: 'cache_everything' }],
+							targets: [
+								{
+									target: 'url',
+									constraint: {
+										operator: 'matches',
+										value: `${host}/static/*`,
+									},
+								},
+							],
+						},
+						{
+							status: 'active',
+							priority: 1,
+							actions: [{ id: 'cache_level', value: 'cache_everything' }],
+							targets: [
+								{
+									target: 'url',
+									constraint: {
+										operator: 'matches',
+										value: `${host}/theatre/*`,
+									},
+								},
+							],
+						},
+					];
+
+					for (let rule of rules) {
+						const resp = await fetchCloudflare(
+							`v4/zones/${host}/pagerules`,
+							cfKey,
+							cfEmail,
+							{
+								method: 'POST',
+								body: rule,
+							}
+						);
+
+						if (!resp.success) {
+							console.error(host, 'rule', rule, resp);
+							throw new HTTPErrors('Unable to add rules.');
 						}
 					}
 				}
