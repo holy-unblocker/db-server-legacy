@@ -210,8 +210,6 @@ export default class TheatreWrapper {
 				.filter(str => str)
 				.join(' ') + ';';
 
-		console.log(query);
-
 		const { rows } = await this.server.client.query(query, vars);
 
 		const total = parseInt(rows[0]?.total);
