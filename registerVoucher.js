@@ -7,24 +7,26 @@ import fetch, { Headers } from 'node-fetch';
 import Cloudflare from 'cloudflare';
 import VoucherWrapper, { FLOOR_TLD_PRICES } from './VoucherWrapper.js';
 
-async function fetchCloudflare(
-	url,
-	key,
-	email,
-	{ method, body, headers = {} } = {}
-) {
+/**
+ *
+ * @param {string} key
+ * @param {string} email
+ * @param {string|url} url
+ * @param {{method:string,body:string}} [cf_init]
+ * @returns {object}
+ */
+async function fetchCloudflare(key, email, url, cf_init = {}) {
 	const init = {
 		headers: new Headers({
 			'x-auth-key': key,
 			'x-auth-email': email,
-			...headers,
 		}),
-		method,
+		method: cf_init.method,
 	};
 
-	if (body !== undefined) {
+	if (cf_init.body !== undefined) {
 		init.headers.set('content-type', 'application/json');
-		init.body = JSON.stringify(body);
+		init.body = JSON.stringify(cf_init.body);
 	}
 
 	const request = await fetch(
@@ -223,7 +225,7 @@ export default async function registerVoucher(
 						const resp = await cf.zones.add({ name: host });
 
 						if (!resp.success) {
-							console.error('add domain', resp);
+							console.error('Failure adding domain to zone:', resp);
 							throw new HTTPErrors.InternalServerError(
 								'Unable to add domain to zone.'
 							);
@@ -240,7 +242,7 @@ export default async function registerVoucher(
 						);
 
 						if (!resp.success) {
-							console.error('ssl', resp);
+							console.error('Failure enabling full SSL:', resp);
 							throw new HTTPErrors.InternalServerError(
 								'Unable to configure domain SSL.'
 							);
@@ -255,21 +257,23 @@ export default async function registerVoucher(
 						);
 
 						if (!resp.success) {
-							console.error('always use https', resp);
+							console.error('Failure enabling Always Use HTTPS:', resp);
 							throw new HTTPErrors.InternalServerError(
 								'Unable to enable Always Use HTTPS.'
 							);
 						}
 					}
 
-					for (let record of DNS) {
-						const resp = await cf.dnsRecords.add(id, record);
+					await Promise.all(
+						DNS.map(async record => {
+							const resp = await cf.dnsRecords.add(id, record);
 
-						if (!resp.success) {
-							console.error(record, resp);
-							throw new HTTPErrors('Unable to add DNS records.');
-						}
-					}
+							if (!resp.success) {
+								console.error('Failure adding DNS record:', record, resp);
+								throw new HTTPErrors('Unable to add DNS records.');
+							}
+						})
+					);
 
 					const rules = [
 						{
@@ -316,22 +320,24 @@ export default async function registerVoucher(
 						},
 					];
 
-					for (let rule of rules) {
-						const resp = await fetchCloudflare(
-							`v4/zones/${host}/pagerules`,
-							cfKey,
-							cfEmail,
-							{
-								method: 'POST',
-								body: rule,
-							}
-						);
+					await Promise.all(
+						rules.map(async rule => {
+							const resp = await fetchCloudflare(
+								cfKey,
+								cfEmail,
+								`v4/zones/${id}/pagerules`,
+								{
+									method: 'POST',
+									body: rule,
+								}
+							);
 
-						if (!resp.success) {
-							console.error(host, 'rule', rule, resp);
-							throw new HTTPErrors('Unable to add rules.');
-						}
-					}
+							if (!resp.success) {
+								console.error('Failure adding page rule:', rule, resp);
+								throw new HTTPErrors('Unable to add page rules.');
+							}
+						})
+					);
 				}
 
 				console.log('REGISTERED', host);
