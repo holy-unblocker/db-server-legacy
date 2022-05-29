@@ -1,5 +1,3 @@
-import { logQuery } from './Server.js';
-
 export const THEATRE_TYPES = [
 	'emulator.nes',
 	'emulator.gba',
