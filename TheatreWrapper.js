@@ -1,3 +1,5 @@
+import { logQuery } from './Server.js';
+
 export const THEATRE_TYPES = [
 	'emulator.nes',
 	'emulator.gba',
@@ -146,11 +148,11 @@ export default class TheatreWrapper {
 		return row_to(row);
 	}
 	/**
-	 * @param {{sort?:'name'|'plays'|'search',reverse?:boolean,limit?:number,offset?:number,limitPerCategory?:number,search?:string,category?:string}} [options]
+	 * @param {{leastGreatest?:boolean,sort?:'name'|'plays'|'search',reverse?:boolean,limit?:number,offset?:number,limitPerCategory?:number,search?:string,category?:string}} [options]
 	 * @returns {{total:TheatreEntry[],entries:TheatreEntry[]}}
 	 */
 	async list(options = {}) {
-		// 0: select, 1: condition, 2: order, 3: limit, 4: offset
+		// 0: select, 1: condition, 3: order, 3: limit, 4: offset
 		const select = [];
 		const conditions = [];
 		const vars = [];
@@ -174,24 +176,30 @@ export default class TheatreWrapper {
 			);
 		}
 
+		const order = [];
+
 		switch (options.sort) {
 			case 'name':
-				select[2] = 'ORDER BY name';
+				order.push('name', 'id');
 				break;
 			case 'plays':
-				select[2] = 'ORDER BY -plays, name';
+				order.push('-plays', 'name', 'id');
 				break;
 			case 'search':
 				if (typeof options.search === 'string') {
 					vars.push(options.search.toUpperCase());
 					selection.push(`similarity(name, $${vars.length}) as sml`);
 					// conditions.push(`name % $${vars.length}`);
-					select[2] = `ORDER BY sml DESC, name`;
+					order.push('sml DESC', 'name');
 				}
 				break;
 		}
 
-		if (conditions.length !== 0) {
+		if (order.length) {
+			select[2] = ['ORDER BY', (options.leastGreatest ? order.map(order => `${order} DESC`) : order).join(',')].filter(Boolean).join(' ');
+		}
+
+		if (conditions.length) {
 			select[1] = `WHERE ${conditions.join('AND')}`;
 		}
 
@@ -207,7 +215,7 @@ export default class TheatreWrapper {
 
 		const query =
 			['SELECT', selection.join(', '), 'FROM theatre a', ...select]
-				.filter(str => str)
+				.filter(Boolean)
 				.join(' ') + ';';
 
 		const { rows } = await this.server.client.query(query, vars);
@@ -215,10 +223,6 @@ export default class TheatreWrapper {
 		const total = parseInt(rows[0]?.total);
 
 		const entries = rows.map(row_to);
-
-		if (options.leastGreatest === true) {
-			entries.reverse();
-		}
 
 		return {
 			total,
