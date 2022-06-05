@@ -234,7 +234,9 @@ export default async function registerVoucher(
 
 							if (!resp.success) {
 								console.error('Failure adding DNS record:', record, resp);
-								throw new HTTPErrors('Unable to add DNS records.');
+								throw new HTTPErrors.InternalServerError(
+									'Unable to add DNS records.'
+								);
 							}
 						})
 					);
@@ -284,7 +286,9 @@ export default async function registerVoucher(
 								);
 							} catch (error) {
 								console.error('Failure adding page rule:', rule, error);
-								throw new HTTPErrors('Unable to add page rules.');
+								throw new HTTPErrors.InternalServerError(
+									'Unable to add page rules.'
+								);
 							}
 						})
 					);
