@@ -23,7 +23,7 @@ function formatError({ code, message, error_chain }) {
  * @param {string} email
  * @param {string|url} url
  * @param {{method:string,body:string}} [cf_init]
- * @returns {object}
+ * @returns {Promise<object>}
  */
 export async function fetchCloudflare(key, email, url, cf_init = {}) {
 	const init = {
@@ -68,7 +68,7 @@ export async function fetchCloudflare(key, email, url, cf_init = {}) {
  *
  * @param {string} key
  * @param {string} email
- * @yields {Zone}
+ * @returns {AsyncGenerator<object>}
  */
 export async function* listAllZones(key, email) {
 	let page = 0;

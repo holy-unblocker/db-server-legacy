@@ -10,13 +10,13 @@ import Server from '../Server.js';
  *
  * @param {import('../Server.js').default} server
  * @param {string|number} i
- * @returns
+ * @returns {Promise<string>}
  */
-async function resolve_id(server, i, confirm) {
+async function resolveID(server, i, confirm) {
 	const games = new TheatreWrapper(server);
 
 	if (!isNaN(i)) {
-		const id = await games.id_at_index(i);
+		const id = await games.indexID(i);
 
 		if (confirm !== true) {
 			return id;
@@ -82,7 +82,7 @@ program
 		await server.open;
 		const games = new TheatreWrapper(server);
 
-		id = await resolve_id(server, id);
+		id = await resolveID(server, id);
 
 		if (typeof controls === 'string') {
 			controls = JSON.parse(controls);
@@ -107,7 +107,7 @@ program
 		await server.open;
 		const games = new TheatreWrapper(server);
 
-		id = await resolve_id(server, id);
+		id = await resolveID(server, id);
 
 		console.table(await games.show(id));
 
@@ -122,7 +122,7 @@ program
 		await server.open;
 		const games = new TheatreWrapper(server);
 
-		id = await resolve_id(server, id, true);
+		id = await resolveID(server, id, true);
 
 		const deleted = await games.delete(id);
 

@@ -19,7 +19,7 @@ export const FLOOR_TLD_PRICES = {
  *
  * @param {Voucher} voucher
  */
-export function validate_voucher(voucher) {
+export function validateVoucher(voucher) {
 	if ('code' in voucher) {
 		if (typeof voucher.code !== 'string') {
 			throw new TypeError('Voucher code was not a string');
@@ -45,7 +45,7 @@ export default class VoucherWrapper {
 	/**
 	 *
 	 * @param {string} host
-	 * @returns {Voucher}
+	 * @returns {Promise<Voucher>}
 	 */
 	async show(code) {
 		const {
@@ -62,7 +62,7 @@ export default class VoucherWrapper {
 		return row;
 	}
 	/**
-	 * @returns {Voucher[]}
+	 * @returns {Promise<Voucher[]>}
 	 */
 	async list() {
 		const { rows } = await this.server.client.query('SELECT * FROM vouchers;');
@@ -83,7 +83,7 @@ export default class VoucherWrapper {
 	/**
 	 *
 	 * @param {string} tld
-	 * @returns {Voucher}
+	 * @returns {Promise<Voucher>}
 	 */
 	async create(tld) {
 		const voucher = {
@@ -91,7 +91,7 @@ export default class VoucherWrapper {
 			tld,
 		};
 
-		validate_voucher(voucher);
+		validateVoucher(voucher);
 
 		await this.server.client.query(
 			'INSERT INTO vouchers (code, tld) VALUES ($1, $2);',
@@ -104,6 +104,7 @@ export default class VoucherWrapper {
 	 *
 	 * @param {string} code
 	 * @param {string} [tld]
+	 * @returns {Promise<Voucher}
 	 */
 	async update(code, tld) {
 		let voucher = await this.show(code);
@@ -117,7 +118,7 @@ export default class VoucherWrapper {
 			tld,
 		};
 
-		validate_voucher(voucher);
+		validateVoucher(voucher);
 
 		await this.server.client.query(
 			'UPDATE vouchers SET tld = $1 WHERE code = $2',

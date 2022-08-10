@@ -18,7 +18,7 @@ const VALID_DOMAIN_NAME = /^[a-z0-9-]*$/i;
 /**
  *
  * @typedef {object} NamesiloAPI
- * @property {{request:{operation:string,ip:string},reply:{code:number,detail:string}}} namesilo
+ * @property {Promise<{request:{operation:string,ip:string},reply:{code:number,detail:string}}>} namesilo
  */
 
 export default async function registerVoucher(
@@ -100,9 +100,9 @@ export default async function registerVoucher(
 			try {
 				const { tld } = await voucher.show(request.params.voucher);
 
-				const floor_price = FLOOR_TLD_PRICES[tld];
+				const floorPrice = FLOOR_TLD_PRICES[tld];
 
-				if (isNaN(floor_price)) {
+				if (isNaN(floorPrice)) {
 					const log = `Missing floor price for TLD ${tld}.`;
 					console.error(log);
 					throw new HTTPErrors.InternalServerError(log);
@@ -139,7 +139,7 @@ export default async function registerVoucher(
 
 					const price = Number(data.namesilo.reply.available.domain['@_price']);
 
-					if (isNaN(price) || price > floor_price) {
+					if (isNaN(price) || price > floorPrice) {
 						throw HTTPErrors.BadRequest('Domain price exceeds limit.');
 					}
 				}

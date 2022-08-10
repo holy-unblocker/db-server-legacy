@@ -1,15 +1,17 @@
 import pg from 'pg';
 
 /**
- * 
+ *
  * @description This function will only log a query to discourage what may lead to a SQL injection
  */
 export function logQuery(query, vars) {
-	console.log(query.replace(/\$(\d+)/g, (match, i) => {
-		const v = vars[parseInt(i - 1)];
+	console.log(
+		query.replace(/\$(\d+)/g, (match, i) => {
+			const v = vars[parseInt(i - 1)];
 
-		return typeof v === 'string' ? `'${v}'` : v;
-	}));
+			return typeof v === 'string' ? `'${v}'` : v;
+		})
+	);
 }
 
 export default class Server {
@@ -30,12 +32,12 @@ export default class Server {
 		/**
 		 * @type {pg.Client}
 		 */
-		this.open = this.open_db();
+		this.open = this.openDB();
 	}
 	async close() {
 		await this.client.end();
 	}
-	async open_db() {
+	async openDB() {
 		await this.client.connect();
 
 		// \c holy

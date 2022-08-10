@@ -31,7 +31,7 @@ export const THEATRE_TYPES = [
  * @property {number} plays
  */
 
-export function row_to(entry) {
+export function rowTo(entry) {
 	const result = { ...entry };
 
 	if ('controls' in result) {
@@ -47,7 +47,7 @@ export function row_to(entry) {
 
 /**
  *
- * @param {TheatreEntry} object
+ * @param {TheatreEntry} entry
  */
 export function validate(entry) {
 	if ('id' in entry) {
@@ -111,9 +111,9 @@ export default class TheatreWrapper {
 	/**
 	 *
 	 * @param {number} index
-	 * @returns {string}
+	 * @returns {Promise<string>}
 	 */
-	async id_at_index(index) {
+	async indexID(index) {
 		const {
 			rows: [result],
 		} = await this.server.client.query(
@@ -130,7 +130,7 @@ export default class TheatreWrapper {
 	/**
 	 *
 	 * @param {string} id
-	 * @returns {TheatreEntry}
+	 * @returns {Promise<TheatreEntry>}
 	 */
 	async show(id) {
 		const {
@@ -143,11 +143,11 @@ export default class TheatreWrapper {
 			throw new RangeError(`Entry with ID ${id} doesn't exist.`);
 		}
 
-		return row_to(row);
+		return rowTo(row);
 	}
 	/**
 	 * @param {{leastGreatest?:boolean,sort?:'name'|'plays'|'search',reverse?:boolean,limit?:number,offset?:number,limitPerCategory?:number,search?:string,category?:string}} [options]
-	 * @returns {{total:TheatreEntry[],entries:TheatreEntry[]}}
+	 * @returns {Promise<{total:TheatreEntry[],entries:TheatreEntry[]}>}
 	 */
 	async list(options = {}) {
 		// 0: select, 1: condition, 3: order, 3: limit, 4: offset
@@ -158,21 +158,20 @@ export default class TheatreWrapper {
 
 		if (typeof options.category === 'string') {
 			const list = [];
-			for (let category of options.category.split(',')) {
-				vars.push(category);
-				list.push(`$${vars.length}`);
-			}
+			for (let category of options.category.split(','))
+				list.push(`$${vars.push(category)}`);
+
 			// split the entry category into an array
 			// check if the input categories array has any elements in common with the entry category array
 			conditions.push(`string_to_array(category, ',') && ARRAY[${list}]`);
 		}
 
-		if (typeof options.limitPerCategory === 'number') {
-			vars.push(options.limitPerCategory);
+		if (typeof options.limitPerCategory === 'number')
 			conditions.push(
-				`(SELECT COUNT(*) FROM theatre b WHERE string_to_array(b."category", ',') && string_to_array(a."category", ',') AND a."index" < b."index") < $${vars.length}`
+				`(SELECT COUNT(*) FROM theatre b WHERE string_to_array(b."category", ',') && string_to_array(a."category", ',') AND a."index" < b."index") < $${vars.push(
+					options.limitPerCategory
+				)}`
 			);
-		}
 
 		const order = [];
 
@@ -185,31 +184,37 @@ export default class TheatreWrapper {
 				break;
 			case 'search':
 				if (typeof options.search === 'string') {
-					vars.push(options.search.toUpperCase());
-					selection.push(`similarity(name, $${vars.length}) as sml`);
-					// conditions.push(`name % $${vars.length}`);
+					selection.push(
+						`similarity(name, $${vars.push(
+							options.search.toUpperCase()
+						)}) as sml`
+					);
 					order.push('sml DESC', 'name');
 				}
 				break;
 		}
 
 		if (order.length) {
-			select[2] = ['ORDER BY', (options.leastGreatest ? order.map(order => `${order} DESC`) : order).join(',')].filter(Boolean).join(' ');
+			select[2] = [
+				'ORDER BY',
+				(options.leastGreatest
+					? order.map(order => `${order} DESC`)
+					: order
+				).join(','),
+			]
+				.filter(Boolean)
+				.join(' ');
 		}
 
 		if (conditions.length) {
 			select[1] = `WHERE ${conditions.join('AND')}`;
 		}
 
-		if (typeof options.limit === 'number') {
-			vars.push(options.limit);
-			select[3] = `LIMIT $${vars.length}`;
-		}
+		if (typeof options.limit === 'number')
+			select[3] = `LIMIT $${vars.push(options.limit)}`;
 
-		if (typeof options.offset === 'number') {
-			vars.push(options.offset);
-			select[4] = `OFFSET $${vars.length}`;
-		}
+		if (typeof options.offset === 'number')
+			select[4] = `OFFSET $${vars.push(options.offset)}`;
 
 		const query =
 			['SELECT', selection.join(', '), 'FROM theatre a', ...select]
@@ -220,7 +225,7 @@ export default class TheatreWrapper {
 
 		const total = parseInt(rows[0]?.total);
 
-		const entries = rows.map(row_to);
+		const entries = rows.map(rowTo);
 
 		return {
 			total,

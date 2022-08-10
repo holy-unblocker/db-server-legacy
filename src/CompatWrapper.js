@@ -36,7 +36,7 @@ export default class CompatWrapper {
 	/**
 	 *
 	 * @param {string} host
-	 * @returns {Compat}
+	 * @returns {Promise<Compat>}
 	 */
 	async show(host) {
 		const {
@@ -52,7 +52,7 @@ export default class CompatWrapper {
 		return result;
 	}
 	/**
-	 * @returns {Compat[]}
+	 * @returns {Promise<Compat[]>}
 	 */
 	async list() {
 		const { rows: compat } = await this.server.client.query(
@@ -63,6 +63,7 @@ export default class CompatWrapper {
 	}
 	/**
 	 * @param {string} host
+	 * @returns {Promise<boolean>} success
 	 */
 	async delete(host) {
 		const { rowCount } = await this.server.client.query(
@@ -76,7 +77,7 @@ export default class CompatWrapper {
 	 *
 	 * @param {string} host
 	 * @param {string} proxy
-	 * @returns {Voucher}
+	 * @returns {Promise<Compat>}
 	 */
 	async create(host, proxy) {
 		const compat = {
@@ -97,6 +98,7 @@ export default class CompatWrapper {
 	 *
 	 * @param {string} host
 	 * @param {string} [proxy]
+	 * @returns {Promise<Compat>}
 	 */
 	async update(host, proxy) {
 		let compat = await this.show(host);
