@@ -6,7 +6,7 @@ export const FLOOR_TLD_PRICES = {
 	'.org': 11,
 	'.net': 12,
 	'.us': 3,
-	'.xyz': 1,
+	'.xyz': 3,
 };
 
 /**
