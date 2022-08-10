@@ -279,25 +279,15 @@ export default class TheatreWrapper {
 	async update(id, name, type, src, category, controls) {
 		let entry = await this.show(id);
 
-		if (name === undefined) {
-			name = entry.name;
-		}
+		if (name === undefined) name = entry.name;
 
-		if (type === undefined) {
-			type = entry.type;
-		}
+		if (type === undefined) type = entry.type;
 
-		if (src === undefined) {
-			src = entry.src;
-		}
+		if (src === undefined) src = entry.src;
 
-		if (category === undefined) {
-			category = entry.category;
-		}
+		if (category === undefined) category = entry.category;
 
-		if (controls === undefined) {
-			controls = entry.controls;
-		}
+		if (controls === undefined) controls = entry.controls;
 
 		entry = {
 			id,
