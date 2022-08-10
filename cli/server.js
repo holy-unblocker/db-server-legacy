@@ -47,8 +47,19 @@ program
 		process.env.NS2
 	)
 	.action(
-		({ nameserver1, nameserver2, cfEmail, cfKey, namesiloKey, port, host }) => {
+		async ({
+			nameserver1,
+			nameserver2,
+			cfEmail,
+			cfKey,
+			namesiloKey,
+			port,
+			host,
+		}) => {
 			const server = new Server();
+			await server.openDB();
+			console.log('DB open');
+
 			const fastify = Fastify({
 				logger: {
 					level: 'error',

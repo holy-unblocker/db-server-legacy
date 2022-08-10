@@ -1,6 +1,6 @@
-import HTTPErrors from 'http-errors';
-import domianNameParser from 'effective-domain-name-parser';
 import CompatWrapper from './CompatWrapper.js';
+import domianNameParser from 'effective-domain-name-parser';
+import HTTPErrors from 'http-errors';
 
 const NOT_EXIST = /Proxy with host .*? doesn't exist/;
 
