@@ -1,11 +1,31 @@
 {
+	"root": true,
 	"env": {
 		"node": true,
 		"es2021": true
 	},
-	"extends": ["eslint:recommended", "prettier"],
+	"extends": ["eslint:recommended"],
 	"parserOptions": {
 		"ecmaVersion": "latest",
 		"sourceType": "module"
+	},
+	"globals": {
+		"global": true
+	},
+	"rules": {
+		"indent": "off",
+		"quotes": "off",
+		"no-mixed-spaces-and-tabs": "off",
+		"no-lone-blocks": "off",
+		"eqeqeq": "error",
+		"prefer-const": "error",
+		"no-var": "error",
+		"no-unused-vars": "error",
+		"no-constant-condition": [
+			"error",
+			{
+				"checkLoops": false
+			}
+		]
 	}
 }

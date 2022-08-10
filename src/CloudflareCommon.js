@@ -3,16 +3,14 @@ import fetch, { Headers } from 'node-fetch';
 function formatError({ code, message, error_chain }) {
 	const result = [`Error ${code}: ${message}`];
 
-	if (error_chain) {
-		for (let error of error_chain) {
+	if (error_chain)
+		for (const error of error_chain)
 			result.push(
 				formatError(error)
 					.split('\n')
 					.map(line => `\t${line}`)
 					.join('\n')
 			);
-		}
-	}
 
 	return result.join('\n');
 }
@@ -46,13 +44,9 @@ export async function fetchCloudflare(key, email, url, cf_init = {}) {
 
 	const { success, result, errors, messages } = await request.json();
 
-	for (let message of messages) {
-		console.warn(message);
-	}
+	for (const message of messages) console.warn(message);
 
-	if (!success) {
-		throw new Error('\n' + errors.map(formatError).join('\n'));
-	}
+	if (!success) throw new Error('\n' + errors.map(formatError).join('\n'));
 
 	return result;
 }
@@ -78,12 +72,8 @@ export async function* listAllZones(key, email) {
 
 		const zones = await fetchCloudflare(key, email, `v4/zones?page=${page}`);
 
-		if (!zones.length) {
-			break;
-		}
+		if (!zones.length) break;
 
-		for (let zone of zones) {
-			yield zone;
-		}
+		for (const zone of zones) yield zone;
 	}
 }

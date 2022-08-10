@@ -1,9 +1,9 @@
 import { config } from 'dotenv-flow';
 config();
 
-import CompatWrapper, { PROXY_TYPES } from '../CompatWrapper.js';
+import CompatWrapper, { PROXY_TYPES } from '../src/CompatWrapper.js';
 import { Command } from 'commander';
-import Server from '../Server.js';
+import Server from '../src/Server.js';
 
 const program = new Command();
 

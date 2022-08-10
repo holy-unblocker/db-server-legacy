@@ -17,14 +17,8 @@
 		"sqlite-async": "^1.1.3"
 	},
 	"devDependencies": {
+		"@ianvs/prettier-plugin-sort-imports": "^3.4.2",
 		"eslint-config-prettier": "^8.5.0",
-		"husky": "^7.0.4",
-		"lint-staged": "^12.3.7"
-	},
-	"lint-staged": {
-		"*.{js,json}": "prettier --write"
-	},
-	"scripts": {
-		"prepare": "husky install"
+		"prettier": "^2.7.1"
 	}
 }

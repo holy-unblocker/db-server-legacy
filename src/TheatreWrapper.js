@@ -50,55 +50,40 @@ export function rowTo(entry) {
  * @param {TheatreEntry} entry
  */
 export function validate(entry) {
-	if ('id' in entry) {
-		if (typeof entry.id !== 'string') {
+	if ('id' in entry)
+		if (typeof entry.id !== 'string')
 			throw new TypeError('Entry ID was not a string');
-		}
-	}
 
-	if ('name' in entry) {
-		if (typeof entry.name !== 'string') {
+	if ('name' in entry)
+		if (typeof entry.name !== 'string')
 			throw new TypeError('Entry name was not a string');
-		}
-	}
 
 	if ('category' in entry) {
-		if (!(entry.category instanceof Array)) {
+		if (!(entry.category instanceof Array))
 			throw new TypeError('Entry category was not an array');
-		}
 
-		for (let category of entry.category) {
-			if (typeof category !== 'string') {
+		for (const category of entry.category)
+			if (typeof category !== 'string')
 				throw new TypeError('Entry category element was not an array');
-			}
-		}
 	}
 
-	if ('controls' in entry) {
-		if (!(entry.controls instanceof Array)) {
+	if ('controls' in entry)
+		if (!(entry.controls instanceof Array))
 			throw new TypeError('Entry controls was not an array');
-		}
-	}
 
-	if ('src' in entry) {
-		if (typeof entry.src !== 'string') {
+	if ('src' in entry)
+		if (typeof entry.src !== 'string')
 			throw new TypeError('Entry src was not a string');
-		}
-	}
 
-	if ('plays' in entry) {
-		if (typeof entry.plays !== 'number') {
+	if ('plays' in entry)
+		if (typeof entry.plays !== 'number')
 			throw new TypeError('Entry plays was not a number');
-		}
-	}
 
-	if ('type' in entry) {
-		if (!THEATRE_TYPES.includes(entry.type)) {
+	if ('type' in entry)
+		if (!THEATRE_TYPES.includes(entry.type))
 			throw new TypeError(
 				`Entry type was not one of the following: ${THEATRE_TYPES}`
 			);
-		}
-	}
 }
 
 export default class TheatreWrapper {
@@ -158,7 +143,7 @@ export default class TheatreWrapper {
 
 		if (typeof options.category === 'string') {
 			const list = [];
-			for (let category of options.category.split(','))
+			for (const category of options.category.split(','))
 				list.push(`$${vars.push(category)}`);
 
 			// split the entry category into an array

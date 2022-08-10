@@ -1,10 +1,10 @@
-import { config } from 'dotenv-flow';
-config();
-
-import TheatreWrapper, { THEATRE_TYPES } from '../TheatreWrapper.js';
+import Server from '../src/Server.js';
+import TheatreWrapper, { THEATRE_TYPES } from '../src/TheatreWrapper.js';
 import { Command } from 'commander';
+import { config } from 'dotenv-flow';
 import promptly from 'promptly';
-import Server from '../Server.js';
+
+config();
 
 /**
  *
@@ -145,7 +145,7 @@ program
 
 		const list = [];
 
-		for (let game of await games.list(category)) {
+		for (const game of (await games.list(category)).entries) {
 			const g = { ...game };
 			delete g.index;
 			delete g.controls;

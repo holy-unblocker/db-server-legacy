@@ -2,8 +2,8 @@ import { config } from 'dotenv-flow';
 config();
 
 import { Command } from 'commander';
-import VoucherWrapper, { TLD_TYPES } from '../VoucherWrapper.js';
-import Server from '../Server.js';
+import VoucherWrapper, { TLD_TYPES } from '../src/VoucherWrapper.js';
+import Server from '../src/Server.js';
 
 const program = new Command();
 

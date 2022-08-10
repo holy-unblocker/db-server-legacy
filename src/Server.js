@@ -30,7 +30,7 @@ export default class Server {
 			}
 		);
 		/**
-		 * @type {pg.Client}
+		 * @type {Promise<pg.Client>}
 		 */
 		this.open = this.openDB();
 	}

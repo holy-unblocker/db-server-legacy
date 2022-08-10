@@ -3,10 +3,10 @@ config();
 
 import { Command } from 'commander';
 import Fastify from 'fastify';
-import Server from '../Server.js';
-import registerTheatre from '../registerTheatre.js';
-import registerCompat from '../registerCompat.js';
-import registerVoucher from '../registerVoucher.js';
+import Server from '../src/Server.js';
+import registerTheatre from '../src/registerTheatre.js';
+import registerCompat from '../src/registerCompat.js';
+import registerVoucher from '../src/registerVoucher.js';
 
 function cors(request, reply) {
 	reply.header('access-control-allow-headers', '*');
