@@ -219,6 +219,7 @@ export default class TheatreWrapper {
 	}
 	/**
 	 * @param {string} id
+	 * @returns {Promise<boolean>} success
 	 */
 	async delete(id) {
 		const { rowCount } = await this.server.client.query(
@@ -235,7 +236,7 @@ export default class TheatreWrapper {
 	 * @param {string} src
 	 * @param {string[]} category
 	 * @param {Control[]} category
-	 * @returns {TheatreEntry}
+	 * @returns {Promise<TheatreEntry>}
 	 */
 	async create(name, type, src, category, controls) {
 		const entry = {
@@ -273,6 +274,7 @@ export default class TheatreWrapper {
 	 * @param {string} [src]
 	 * @param {string[]} category
 	 * @param {Control[]} [controls]
+	 * @returns {Promise<TheatreEntry>}
 	 */
 	async update(id, name, type, src, category, controls) {
 		let entry = await this.show(id);
@@ -325,8 +327,9 @@ export default class TheatreWrapper {
 	/**
 	 *
 	 * @param {string} id
+	 * @returns {Promise<boolean>} success
 	 */
-	async count_play(id) {
+	async countPlay(id) {
 		const { rowCount } = await this.server.client.query(
 			'UPDATE theatre SET plays = plays + 1 WHERE id = $1',
 			[id]

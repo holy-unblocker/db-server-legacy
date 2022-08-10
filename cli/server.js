@@ -1,12 +1,12 @@
-import { config } from 'dotenv-flow';
-config();
-
-import { Command } from 'commander';
-import Fastify from 'fastify';
 import Server from '../src/Server.js';
-import registerTheatre from '../src/registerTheatre.js';
 import registerCompat from '../src/registerCompat.js';
+import registerTheatre from '../src/registerTheatre.js';
 import registerVoucher from '../src/registerVoucher.js';
+import { Command } from 'commander';
+import { config } from 'dotenv-flow';
+import Fastify from 'fastify';
+
+config();
 
 function cors(request, reply) {
 	reply.header('access-control-allow-headers', '*');
@@ -21,11 +21,6 @@ const program = new Command();
 program
 	.option('-h, --host <string>', 'Listening host', 'localhost')
 	.option('-p, --port <number>', 'Listening port', process.env.PORT || 80)
-	.option(
-		'-hs, --hcaptcha-secret <string>',
-		'HCaptcha secret',
-		process.env.HCAPTCHA_SECRET || '0x0000000000000000000000000000000000000000'
-	)
 	.requiredOption(
 		'-ce, --cf-email <email>',
 		'Cloudflare API Email',
@@ -52,16 +47,7 @@ program
 		process.env.NS2
 	)
 	.action(
-		({
-			hcaptchaSecret,
-			nameserver1,
-			nameserver2,
-			cfEmail,
-			cfKey,
-			namesiloKey,
-			port,
-			host,
-		}) => {
+		({ nameserver1, nameserver2, cfEmail, cfKey, namesiloKey, port, host }) => {
 			const server = new Server();
 			const fastify = Fastify({
 				logger: {
@@ -82,7 +68,6 @@ program
 				prefix: '/theatre',
 				server,
 				cors,
-				hcaptchaSecret,
 			});
 
 			fastify.register(registerCompat, {

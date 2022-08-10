@@ -1,6 +1,5 @@
-import HTTPErrors from 'http-errors';
 import TheatreWrapper from './TheatreWrapper.js';
-// import hcaptcha from 'hcaptcha';
+import HTTPErrors from 'http-errors';
 
 const NOT_EXIST = /Entry with ID .*? doesn't exist/;
 
@@ -34,13 +33,12 @@ export default async function registerTheatre(fastify, { cors, server }) {
 				total: data.total,
 			};
 
-			for (let entry of data.entries) {
+			for (const entry of data.entries)
 				send.entries.push({
 					name: entry.name,
 					id: entry.id,
 					category: entry.category,
 				});
-			}
 
 			reply.send(data);
 		},
@@ -79,14 +77,8 @@ export default async function registerTheatre(fastify, { cors, server }) {
 		async handler(request, reply) {
 			cors(request, reply);
 
-			/* const data = await hcaptcha.verify(secret, request.query.token);
-
-			if (!data.success) {
-				throw new HTTPErrors.Forbidden('Bad captcha');
-			}*/
-
 			try {
-				await theatre.count_play(request.params.id);
+				await theatre.countPlay(request.params.id);
 				reply.send({});
 			} catch (error) {
 				if (NOT_EXIST.test(error)) {

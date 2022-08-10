@@ -26,7 +26,7 @@ async function resolveID(server, i, confirm) {
 		if (await promptly.confirm('Is this the correct game? (y/n)')) {
 			return id;
 		} else {
-			await server.close();
+			await server.closeDB();
 			process.exit();
 		}
 	} else if (typeof i === 'string') {
@@ -47,26 +47,20 @@ program
 	.requiredOption('-s, --src <url>')
 	.action(async ({ name, type, src, category, controls }) => {
 		const server = new Server();
-		await server.open;
+		await server.openDB();
 		const games = new TheatreWrapper(server);
 
-		if (typeof controls === 'string') {
-			controls = JSON.parse(controls);
-		} else {
-			controls = [];
-		}
+		if (typeof controls === 'string') controls = JSON.parse(controls);
+		else controls = [];
 
-		if (typeof category === 'string') {
-			category = category.split(',');
-		} else {
-			category = [];
-		}
+		if (typeof category === 'string') category = category.split(',');
+		else category = [];
 
 		const game = await games.create(name, type, src, category, controls);
 
 		console.log(`Game created. ID: ${game.id.toString('hex')}`);
 
-		await server.close();
+		await server.closeDB();
 	});
 
 program
@@ -79,24 +73,20 @@ program
 	.option('-s, --src <url>')
 	.action(async (id, { name, type, src, category, controls }) => {
 		const server = new Server();
-		await server.open;
+		await server.openDB();
 		const games = new TheatreWrapper(server);
 
 		id = await resolveID(server, id);
 
-		if (typeof controls === 'string') {
-			controls = JSON.parse(controls);
-		}
+		if (typeof controls === 'string') controls = JSON.parse(controls);
 
-		if (typeof category === 'string') {
-			category = category.split(',');
-		}
+		if (typeof category === 'string') category = category.split(',');
 
 		await games.update(id, name, type, src, category, controls);
 
 		console.log('Updated game.');
 
-		await server.close();
+		await server.closeDB();
 	});
 
 program
@@ -104,14 +94,11 @@ program
 	.argument('id')
 	.action(async id => {
 		const server = new Server();
-		await server.open;
+		await server.openDB();
 		const games = new TheatreWrapper(server);
-
 		id = await resolveID(server, id);
-
 		console.table(await games.show(id));
-
-		await server.close();
+		await server.closeDB();
 	});
 
 program
@@ -119,20 +106,15 @@ program
 	.argument('id')
 	.action(async id => {
 		const server = new Server();
-		await server.open;
+		await server.openDB();
 		const games = new TheatreWrapper(server);
-
 		id = await resolveID(server, id, true);
-
 		const deleted = await games.delete(id);
 
-		if (deleted) {
-			console.log('Game deleted.');
-		} else {
-			console.log("Game wasn't deleted. Is the ID valid?");
-		}
+		if (deleted) console.log('Game deleted.');
+		else console.log("Game wasn't deleted. Is the ID valid?");
 
-		await server.close();
+		await server.closeDB();
 	});
 
 program
@@ -140,7 +122,7 @@ program
 	.argument('[category]')
 	.action(async category => {
 		const server = new Server();
-		await server.open;
+		await server.openDB();
 		const games = new TheatreWrapper(server);
 
 		const list = [];
@@ -154,7 +136,7 @@ program
 
 		console.table(list);
 
-		await server.close();
+		await server.closeDB();
 	});
 
 program.parse(process.argv);

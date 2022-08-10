@@ -1,9 +1,9 @@
-import { config } from 'dotenv-flow';
-config();
-
-import { Command } from 'commander';
-import VoucherWrapper, { TLD_TYPES } from '../src/VoucherWrapper.js';
 import Server from '../src/Server.js';
+import VoucherWrapper, { TLD_TYPES } from '../src/VoucherWrapper.js';
+import { Command } from 'commander';
+import { config } from 'dotenv-flow';
+
+config();
 
 const program = new Command();
 
@@ -12,7 +12,7 @@ program
 	.argument(`<${TLD_TYPES}>`)
 	.action(async tld => {
 		const server = new Server();
-		await server.open;
+		await server.openDB();
 		const voucher = new VoucherWrapper(server);
 
 		const { code } = await voucher.create(tld);
@@ -21,7 +21,7 @@ program
 
 		console.log(code);
 
-		await server.close();
+		await server.closeDB();
 	});
 
 program
@@ -30,7 +30,7 @@ program
 	.argument('amount', 'Amount of vouchers to create')
 	.action(async (tld, amount) => {
 		const server = new Server();
-		await server.open;
+		await server.openDB();
 		const voucher = new VoucherWrapper(server);
 
 		for (let i = 0; i < amount; i++) {
@@ -38,7 +38,7 @@ program
 			console.log(code);
 		}
 
-		await server.close();
+		await server.closeDB();
 	});
 
 program
@@ -47,14 +47,14 @@ program
 	.argument(`<${TLD_TYPES}>`)
 	.action(async (code, tld) => {
 		const server = new Server();
-		await server.open;
+		await server.openDB();
 		const voucher = new VoucherWrapper(server);
 
 		await voucher.update(code, tld);
 
 		console.log('Updated voucher.');
 
-		await server.close();
+		await server.closeDB();
 	});
 
 program
@@ -62,12 +62,12 @@ program
 	.argument('code')
 	.action(async code => {
 		const server = new Server();
-		await server.open;
+		await server.openDB();
 		const voucher = new VoucherWrapper(server);
 
 		console.table(await voucher.show(code));
 
-		await server.close();
+		await server.closeDB();
 	});
 
 program
@@ -75,7 +75,7 @@ program
 	.argument('code')
 	.action(async code => {
 		const server = new Server();
-		await server.open;
+		await server.openDB();
 		const voucher = new VoucherWrapper(server);
 
 		const deleted = await voucher.delete(code);
@@ -86,17 +86,17 @@ program
 			console.log("Voucher wasn't deleted. Is the code valid?");
 		}
 
-		await server.close();
+		await server.closeDB();
 	});
 
 program.command('list').action(async () => {
 	const server = new Server();
-	await server.open;
+	await server.openDB();
 	const voucher = new VoucherWrapper(server);
 
 	console.table(await voucher.list());
 
-	await server.close();
+	await server.closeDB();
 });
 
 program.parse(process.argv);

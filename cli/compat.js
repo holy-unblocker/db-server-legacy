@@ -1,9 +1,9 @@
-import { config } from 'dotenv-flow';
-config();
-
 import CompatWrapper, { PROXY_TYPES } from '../src/CompatWrapper.js';
-import { Command } from 'commander';
 import Server from '../src/Server.js';
+import { Command } from 'commander';
+import { config } from 'dotenv-flow';
+
+config();
 
 const program = new Command();
 
@@ -13,14 +13,14 @@ program
 	.argument('proxy', `<${PROXY_TYPES}>`)
 	.action(async (host, proxy) => {
 		const server = new Server();
-		await server.open;
+		await server.openDB();
 		const compat = new CompatWrapper(server);
 
 		await compat.create(host, proxy);
 
 		console.log('Compat created.');
 
-		await server.close();
+		await server.closeDB();
 	});
 
 program
@@ -29,16 +29,11 @@ program
 	.argument('proxy', `<${PROXY_TYPES}>`)
 	.action(async (host, proxy) => {
 		const server = new Server();
-
-		await server.open;
-
+		await server.openDB();
 		const compat = new CompatWrapper(server);
-
 		await compat.update(host, proxy);
-
 		console.log('Updated compat.');
-
-		await server.close();
+		await server.closeDB();
 	});
 
 program
@@ -46,12 +41,10 @@ program
 	.argument('host')
 	.action(async host => {
 		const server = new Server();
-		await server.open;
+		await server.openDB();
 		const compat = new CompatWrapper(server);
-
 		console.table(await compat.show(host));
-
-		await server.close();
+		await server.closeDB();
 	});
 
 program
@@ -59,28 +52,22 @@ program
 	.argument('host')
 	.action(async host => {
 		const server = new Server();
-		await server.open;
+		await server.openDB();
 		const compat = new CompatWrapper(server);
-
 		const deleted = await compat.delete(host);
 
-		if (deleted) {
-			console.log('Compat deleted.');
-		} else {
-			console.log("Compat wasn't deleted. Is the host valid?");
-		}
+		if (deleted) console.log('Compat deleted.');
+		else console.log("Compat wasn't deleted. Is the host valid?");
 
-		await server.close();
+		await server.closeDB();
 	});
 
 program.command('list').action(async () => {
 	const server = new Server();
-	await server.open;
+	await server.openDB();
 	const compat = new CompatWrapper(server);
-
 	console.table(await compat.list());
-
-	await server.close();
+	await server.closeDB();
 });
 
 program.parse(process.argv);

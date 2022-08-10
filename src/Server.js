@@ -29,12 +29,8 @@ export default class Server {
 				database: process.env.PG_DATABASE,
 			}
 		);
-		/**
-		 * @type {Promise<pg.Client>}
-		 */
-		this.open = this.openDB();
 	}
-	async close() {
+	async closeDB() {
 		await this.client.end();
 	}
 	async openDB() {
