@@ -1,5 +1,3 @@
-import Cloudflare from './Cloudflare.js';
-import type { DNSRecord, Zone, Setting } from './CloudflareV4.js';
 import VoucherWrapper, { FLOOR_TLD_PRICES } from './VoucherWrapper.js';
 import { getDNS, getRules } from './cloudflareConsts.js';
 import {
@@ -9,11 +7,12 @@ import {
 	nameserver2,
 	namesiloKey,
 } from './collectENV.js';
+import Cloudflare from '@e9x/cloudflare';
+import type { Zone } from '@e9x/cloudflare/v4';
 import { XMLParser } from 'fast-xml-parser';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import createError from 'http-errors';
 import fetch from 'node-fetch';
-import { readFile } from 'node:fs/promises';
 import type { Client } from 'pg';
 
 const notExist = /Voucher with code .*? doesn't exist/;
@@ -194,7 +193,7 @@ export default async function registerVoucher(
 				// CONFIGURE
 				console.log('configure', host);
 
-				let zone = await cf.post<Zone>(`v4/zones`, {
+				let zone = await cf.post<Zone, { name: string }>(`v4/zones`, {
 					name: host,
 				});
 

@@ -1,4 +1,4 @@
-import type { DNSRecord, Zone } from "./CloudflareV4.js";
+import type { DNSRecord, Zone } from '@e9x/cloudflare/v4';
 
 export const getRules = (zone: Zone) => [
 	{
