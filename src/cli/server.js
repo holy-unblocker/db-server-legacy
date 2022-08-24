@@ -1,4 +1,4 @@
-import Server from '../Server.js';
+import dbConnect from '../dbConnect.js';
 import registerCompat from '../registerCompat.js';
 import registerTheatre from '../registerTheatre.js';
 import registerVoucher from '../registerVoucher.js';
@@ -57,8 +57,7 @@ program
 			port,
 			host,
 		}) => {
-			const db = new Server();
-			await db.openDB();
+			const client = await dbConnect();
 			console.log('DB open');
 
 			const server = fastify({
@@ -78,19 +77,19 @@ program
 
 			server.register(registerTheatre, {
 				prefix: '/theatre',
-				db,
+				client,
 				cors,
 			});
 
 			server.register(registerCompat, {
 				prefix: '/compat',
-				db,
+				client,
 				cors,
 			});
 
 			server.register(registerVoucher, {
 				prefix: '/vouchers',
-				db,
+				client,
 				cors,
 				nameserver1,
 				nameserver2,

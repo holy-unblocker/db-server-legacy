@@ -27,11 +27,11 @@ export function validate(compat) {
 }
 
 export default class CompatWrapper {
-	constructor(server) {
+	constructor(client) {
 		/**
-		 * @type {import('./Server.js').default}
+		 * @type {import('pg').Client}
 		 */
-		this.server = server;
+		this.client = client;
 	}
 	/**
 	 *
@@ -41,9 +41,7 @@ export default class CompatWrapper {
 	async show(host) {
 		const {
 			rows: [result],
-		} = await this.server.client.query('SELECT * FROM compat WHERE host = $1', [
-			host,
-		]);
+		} = await this.client.query('SELECT * FROM compat WHERE host = $1', [host]);
 
 		if (result === undefined) {
 			throw new RangeError(`Proxy with host ${host} doesn't exist.`);
@@ -55,9 +53,7 @@ export default class CompatWrapper {
 	 * @returns {Promise<Compat[]>}
 	 */
 	async list() {
-		const { rows: compat } = await this.server.client.query(
-			'SELECT * FROM compat;'
-		);
+		const { rows: compat } = await this.client.query('SELECT * FROM compat;');
 
 		return compat;
 	}
@@ -66,7 +62,7 @@ export default class CompatWrapper {
 	 * @returns {Promise<boolean>} success
 	 */
 	async delete(host) {
-		const { rowCount } = await this.server.client.query(
+		const { rowCount } = await this.client.query(
 			'DELETE FROM compat WHERE host = $1;',
 			[host]
 		);
@@ -87,7 +83,7 @@ export default class CompatWrapper {
 
 		validate(compat);
 
-		await this.server.client.query(
+		await this.client.query(
 			'INSERT INTO compat (host, proxy) VALUES ($1, $2);',
 			[compat.host, compat.proxy]
 		);
@@ -114,10 +110,10 @@ export default class CompatWrapper {
 
 		validate(compat);
 
-		await this.server.client.query(
-			'UPDATE compat SET proxy = $1 WHERE host = $2',
-			[compat.proxy, compat.host]
-		);
+		await this.client.query('UPDATE compat SET proxy = $1 WHERE host = $2', [
+			compat.proxy,
+			compat.host,
+		]);
 
 		return compat;
 	}

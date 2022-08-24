@@ -1,5 +1,5 @@
-import Server from '../Server.js';
 import TheatreWrapper, { theatreTypes } from '../TheatreWrapper.js';
+import dbConnect from '../dbConnect.js';
 import { Command } from 'commander';
 import { expand } from 'dotenv-expand';
 import { config } from 'dotenv-flow';
@@ -9,12 +9,12 @@ expand(config());
 
 /**
  *
- * @param {import('../Server.js').default} server
+ * @param {import('pg').Client} client
  * @param {string|number} i
  * @returns {Promise<string>}
  */
-async function resolveID(server, i, confirm) {
-	const games = new TheatreWrapper(server);
+async function resolveID(client, i, confirm) {
+	const games = new TheatreWrapper(client);
 
 	if (!isNaN(i)) {
 		const id = await games.indexID(i);
@@ -27,7 +27,7 @@ async function resolveID(server, i, confirm) {
 		if (await promptly.confirm('Is this the correct game? (y/n)')) {
 			return id;
 		} else {
-			await server.closeDB();
+			await client.end();
 			process.exit();
 		}
 	} else if (typeof i === 'string') {
@@ -47,9 +47,8 @@ program
 	.requiredOption(`-t, --type <${theatreTypes}>`)
 	.requiredOption('-s, --src <url>')
 	.action(async ({ name, type, src, category, controls }) => {
-		const server = new Server();
-		await server.openDB();
-		const games = new TheatreWrapper(server);
+		const client = await dbConnect();
+		const games = new TheatreWrapper(client);
 
 		if (typeof controls === 'string') controls = JSON.parse(controls);
 		else controls = [];
@@ -61,7 +60,7 @@ program
 
 		console.log(`Game created. ID: ${game.id.toString('hex')}`);
 
-		await server.closeDB();
+		await client.end();
 	});
 
 program
@@ -73,58 +72,46 @@ program
 	.option(`-t, --type <${theatreTypes}>`)
 	.option('-s, --src <url>')
 	.action(async (id, { name, type, src, category, controls }) => {
-		const server = new Server();
-		await server.openDB();
-		const games = new TheatreWrapper(server);
-
-		id = await resolveID(server, id);
-
+		const client = await dbConnect();
+		const games = new TheatreWrapper(client);
+		id = await resolveID(client, id);
 		if (typeof controls === 'string') controls = JSON.parse(controls);
-
 		if (typeof category === 'string') category = category.split(',');
-
 		await games.update(id, name, type, src, category, controls);
-
 		console.log('Updated game.');
-
-		await server.closeDB();
+		await client.end();
 	});
 
 program
 	.command('show')
 	.argument('id')
-	.action(async id => {
-		const server = new Server();
-		await server.openDB();
-		const games = new TheatreWrapper(server);
-		id = await resolveID(server, id);
+	.action(async (id) => {
+		const client = await dbConnect();
+		const games = new TheatreWrapper(client);
+		id = await resolveID(client, id);
 		console.table(await games.show(id));
-		await server.closeDB();
+		await client.end();
 	});
 
 program
 	.command('delete')
 	.argument('id')
-	.action(async id => {
-		const server = new Server();
-		await server.openDB();
-		const games = new TheatreWrapper(server);
-		id = await resolveID(server, id, true);
+	.action(async (id) => {
+		const client = await dbConnect();
+		const games = new TheatreWrapper(client);
+		id = await resolveID(client, id, true);
 		const deleted = await games.delete(id);
-
 		if (deleted) console.log('Game deleted.');
 		else console.log("Game wasn't deleted. Is the ID valid?");
-
-		await server.closeDB();
+		await client.end();
 	});
 
 program
 	.command('list')
 	.argument('[category]')
-	.action(async category => {
-		const server = new Server();
-		await server.openDB();
-		const games = new TheatreWrapper(server);
+	.action(async (category) => {
+		const client = await dbConnect();
+		const games = new TheatreWrapper(client);
 
 		const list = [];
 
@@ -137,7 +124,7 @@ program
 
 		console.table(list);
 
-		await server.closeDB();
+		await client.end();
 	});
 
 program.parse(process.argv);

@@ -3,8 +3,8 @@ import HTTPErrors from 'http-errors';
 
 const notExist = /Entry with ID .*? doesn't exist/;
 
-export default async function registerTheatre(fastify, { cors, db }) {
-	const theatre = new TheatreWrapper(db);
+export default async function registerTheatre(fastify, { cors, client }) {
+	const theatre = new TheatreWrapper(client);
 
 	fastify.route({
 		url: '/',

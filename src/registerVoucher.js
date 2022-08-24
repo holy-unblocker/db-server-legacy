@@ -19,7 +19,7 @@ export default async function registerVoucher(
 	fastify,
 	{ cors, server, cfEmail, cfKey, namesiloKey, nameserver1, nameserver2 }
 ) {
-	const voucher = new VoucherWrapper(server);
+	const voucher = new VoucherWrapper(client);
 
 	const cf = new Cloudflare({
 		email: cfEmail,
@@ -172,7 +172,7 @@ export default async function registerVoucher(
 				}
 
 				console.log('delaying configuration', host);
-				await new Promise(resolve => setTimeout(resolve), 25e3);
+				await new Promise((resolve) => setTimeout(resolve), 25e3);
 
 				// CONFIGURE
 				console.log('configure', host);
@@ -223,7 +223,7 @@ export default async function registerVoucher(
 					}
 
 					await Promise.all(
-						DNS.map(async record => {
+						DNS.map(async (record) => {
 							const resp = await cf.dnsRecords.add(id, record);
 
 							if (!resp.success) {
@@ -267,7 +267,7 @@ export default async function registerVoucher(
 					];
 
 					await Promise.all(
-						rules.map(async rule => {
+						rules.map(async (rule) => {
 							try {
 								await cf.post(`v4/zones/${id}/pagerules`, rule);
 							} catch (error) {

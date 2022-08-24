@@ -36,11 +36,11 @@ export function validateVoucher(voucher) {
 }
 
 export default class VoucherWrapper {
-	constructor(server) {
+	constructor(client) {
 		/**
-		 * @type {import('./Server.js').default}
+		 * @type {import('pg').Client}
 		 */
-		this.server = server;
+		this.client = client;
 	}
 	/**
 	 *
@@ -50,10 +50,9 @@ export default class VoucherWrapper {
 	async show(code) {
 		const {
 			rows: [row],
-		} = await this.server.client.query(
-			'SELECT * FROM vouchers WHERE code = $1',
-			[code]
-		);
+		} = await this.client.query('SELECT * FROM vouchers WHERE code = $1', [
+			code,
+		]);
 
 		if (row === undefined) {
 			throw new RangeError(`Voucher with code ${code} doesn't exist.`);
@@ -65,7 +64,7 @@ export default class VoucherWrapper {
 	 * @returns {Promise<Voucher[]>}
 	 */
 	async list() {
-		const { rows } = await this.server.client.query('SELECT * FROM vouchers;');
+		const { rows } = await this.client.query('SELECT * FROM vouchers;');
 
 		return rows;
 	}
@@ -73,7 +72,7 @@ export default class VoucherWrapper {
 	 * @param {string} code
 	 */
 	async delete(code) {
-		const { rowCount } = await this.server.client.query(
+		const { rowCount } = await this.client.query(
 			'DELETE FROM vouchers WHERE code = $1;',
 			[code]
 		);
@@ -93,7 +92,7 @@ export default class VoucherWrapper {
 
 		validateVoucher(voucher);
 
-		await this.server.client.query(
+		await this.client.query(
 			'INSERT INTO vouchers (code, tld) VALUES ($1, $2);',
 			[voucher.code, voucher.tld]
 		);
@@ -120,10 +119,10 @@ export default class VoucherWrapper {
 
 		validateVoucher(voucher);
 
-		await this.server.client.query(
-			'UPDATE vouchers SET tld = $1 WHERE code = $2',
-			[voucher.tld, voucher.code]
-		);
+		await this.client.query('UPDATE vouchers SET tld = $1 WHERE code = $2', [
+			voucher.tld,
+			voucher.code,
+		]);
 
 		return voucher;
 	}

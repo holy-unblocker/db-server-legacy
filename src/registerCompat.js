@@ -4,8 +4,8 @@ import HTTPErrors from 'http-errors';
 
 const notExist = /Proxy with host .*? doesn't exist/;
 
-export default async function registerCompat(fastify, { cors, db }) {
-	const compat = new CompatWrapper(db);
+export default async function registerCompat(fastify, { cors, client }) {
+	const compat = new CompatWrapper(client);
 
 	fastify.route({
 		url: '/:host/',

@@ -87,11 +87,11 @@ export function validate(entry) {
 }
 
 export default class TheatreWrapper {
-	constructor(server) {
+	constructor(client) {
 		/**
-		 * @type {import('./Server.js').default}
+		 * @type {import('pg').Client}
 		 */
-		this.server = server;
+		this.client = client;
 	}
 	/**
 	 *
@@ -101,10 +101,9 @@ export default class TheatreWrapper {
 	async indexID(index) {
 		const {
 			rows: [result],
-		} = await this.server.client.query(
-			'SELECT id FROM theatre WHERE index = $1;',
-			[index]
-		);
+		} = await this.client.query('SELECT id FROM theatre WHERE index = $1;', [
+			index,
+		]);
 
 		if (result === undefined) {
 			throw new RangeError(`Entry doesn't exist at index ${index}.`);
@@ -120,9 +119,7 @@ export default class TheatreWrapper {
 	async show(id) {
 		const {
 			rows: [row],
-		} = await this.server.client.query('SELECT * FROM theatre WHERE id = $1', [
-			id,
-		]);
+		} = await this.client.query('SELECT * FROM theatre WHERE id = $1', [id]);
 
 		if (row === undefined) {
 			throw new RangeError(`Entry with ID ${id} doesn't exist.`);
@@ -183,7 +180,7 @@ export default class TheatreWrapper {
 			select[2] = [
 				'ORDER BY',
 				(options.leastGreatest
-					? order.map(order => `${order} DESC`)
+					? order.map((order) => `${order} DESC`)
 					: order
 				).join(','),
 			]
@@ -206,7 +203,7 @@ export default class TheatreWrapper {
 				.filter(Boolean)
 				.join(' ') + ';';
 
-		const { rows } = await this.server.client.query(query, vars);
+		const { rows } = await this.client.query(query, vars);
 
 		const total = parseInt(rows[0]?.total);
 
@@ -222,7 +219,7 @@ export default class TheatreWrapper {
 	 * @returns {Promise<boolean>} success
 	 */
 	async delete(id) {
-		const { rowCount } = await this.server.client.query(
+		const { rowCount } = await this.client.query(
 			'DELETE FROM theatre WHERE id = $1;',
 			[id]
 		);
@@ -251,7 +248,7 @@ export default class TheatreWrapper {
 
 		validate(entry);
 
-		await this.server.client.query(
+		await this.client.query(
 			'INSERT INTO theatre (id, name, type, category, src, plays, controls) VALUES ($1, $2, $3, $4, $5, $6, $7);',
 			[
 				entry.id,
@@ -300,7 +297,7 @@ export default class TheatreWrapper {
 
 		validate(entry);
 
-		await this.server.client.query(
+		await this.client.query(
 			'UPDATE theatre SET name = $1, type = $2, category = $3, src = $4, controls = $5 WHERE id = $6',
 			[
 				entry.name,
@@ -320,7 +317,7 @@ export default class TheatreWrapper {
 	 * @returns {Promise<boolean>} success
 	 */
 	async countPlay(id) {
-		const { rowCount } = await this.server.client.query(
+		const { rowCount } = await this.client.query(
 			'UPDATE theatre SET plays = plays + 1 WHERE id = $1',
 			[id]
 		);
