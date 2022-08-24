@@ -1,3 +1,5 @@
+import type { Client } from 'pg';
+
 export const tldTypes = ['.com', '.org', '.net', '.us', '.xyz'];
 
 // (rounded to nearest whole)
@@ -9,17 +11,12 @@ export const FLOOR_TLD_PRICES = {
 	'.xyz': 3,
 };
 
-/**
- * @typedef {object} Voucher
- * @property {string} code
- * @property {'.com'|'.org'|'.net'|'.us'|'.xyz'} proxy
- */
+interface Voucher {
+	code: string;
+	tld: '.com' | '.org' | '.net' | '.us' | '.xyz';
+}
 
-/**
- *
- * @param {Voucher} voucher
- */
-export function validateVoucher(voucher) {
+function validateVoucher(voucher: Voucher) {
 	if ('code' in voucher) {
 		if (typeof voucher.code !== 'string') {
 			throw new TypeError('Voucher code was not a string');
@@ -36,42 +33,29 @@ export function validateVoucher(voucher) {
 }
 
 export default class VoucherWrapper {
-	constructor(client) {
-		/**
-		 * @type {import('pg').Client}
-		 */
+	client: Client;
+	constructor(client: Client) {
 		this.client = client;
 	}
-	/**
-	 *
-	 * @param {string} host
-	 * @returns {Promise<Voucher>}
-	 */
-	async show(code) {
+	async show(code: string): Promise<Voucher> {
 		const {
 			rows: [row],
 		} = await this.client.query('SELECT * FROM vouchers WHERE code = $1', [
 			code,
 		]);
 
-		if (row === undefined) {
+		if (row === undefined) 
 			throw new RangeError(`Voucher with code ${code} doesn't exist.`);
-		}
+		
 
 		return row;
 	}
-	/**
-	 * @returns {Promise<Voucher[]>}
-	 */
-	async list() {
+	async list(): Promise<Voucher[]> {
 		const { rows } = await this.client.query('SELECT * FROM vouchers;');
 
 		return rows;
 	}
-	/**
-	 * @param {string} code
-	 */
-	async delete(code) {
+	async delete(code: string) {
 		const { rowCount } = await this.client.query(
 			'DELETE FROM vouchers WHERE code = $1;',
 			[code]
@@ -79,13 +63,8 @@ export default class VoucherWrapper {
 
 		return rowCount !== 0;
 	}
-	/**
-	 *
-	 * @param {string} tld
-	 * @returns {Promise<Voucher>}
-	 */
-	async create(tld) {
-		const voucher = {
+	async create(tld: Voucher['tld']): Promise<Voucher> {
+		const voucher: Voucher = {
 			code: Math.random().toString(36).slice(2),
 			tld,
 		};
@@ -99,13 +78,7 @@ export default class VoucherWrapper {
 
 		return voucher;
 	}
-	/**
-	 *
-	 * @param {string} code
-	 * @param {string} [tld]
-	 * @returns {Promise<Voucher}
-	 */
-	async update(code, tld) {
+	async update(code: string, tld?: string): Promise<Voucher> {
 		let voucher = await this.show(code);
 
 		if (tld === undefined) {
@@ -114,7 +87,7 @@ export default class VoucherWrapper {
 
 		voucher = {
 			code,
-			tld,
+			tld: <Voucher['tld']>tld,
 		};
 
 		validateVoucher(voucher);

@@ -1,3 +1,5 @@
+import type { Client } from 'pg';
+
 export const theatreTypes = [
 	'emulator.nes',
 	'emulator.gba',
@@ -8,30 +10,39 @@ export const theatreTypes = [
 ];
 
 /**
- *
- * @typedef {'mouseleft'|'mouseright'|'scrollup'|'scrolldown'|'wasd'|'arrows'|string} KeyLike
- * @description one of the above types or a letter/key such as A,B,TAB,SPACE,SHIFT
+ * one of the above types or a letter/key such as A,B,TAB,SPACE,SHIFT
  */
+type KeyLike =
+	| 'mouseleft'
+	| 'mouseright'
+	| 'scrollup'
+	| 'scrolldown'
+	| 'wasd'
+	| 'arrows'
+	| string;
 
-/**
- *
- * @typedef {object} Control
- * @property {KeyLike[]} keys
- * @property {string} label
- *
- */
+interface Control {
+	keys: KeyLike[];
+	label: string;
+}
 
-/**
- * @typedef {object} TheatreEntry
- * @property {'emulator.nes'|'emulator.gba'|'emulator.genesis'|'embed'|'proxy'} type
- * @property {Control[]} controls
- * @property {string[]} category
- * @property {string} id
- * @property {string} name
- * @property {number} plays
- */
+interface TheatreEntry {
+	type:
+		| 'emulator.nes'
+		| 'emulator.gba'
+		| 'emulator.genesis'
+		| 'flash'
+		| 'embed'
+		| 'proxy';
+	controls: Control[];
+	category: string[];
+	id: string;
+	name: string;
+	plays: number;
+	src: string;
+}
 
-export function rowTo(entry) {
+export function rowTo(entry: any) {
 	const result = { ...entry };
 
 	if ('controls' in result) {
@@ -45,11 +56,7 @@ export function rowTo(entry) {
 	return result;
 }
 
-/**
- *
- * @param {TheatreEntry} entry
- */
-export function validate(entry) {
+function validate(entry: TheatreEntry): entry is TheatreEntry {
 	if ('id' in entry)
 		if (typeof entry.id !== 'string')
 			throw new TypeError('Entry ID was not a string');
@@ -84,21 +91,27 @@ export function validate(entry) {
 			throw new TypeError(
 				`Entry type was not one of the following: ${theatreTypes}`
 			);
+
+	return true;
+}
+
+interface ListOptions {
+	leastGreatest?: boolean;
+	sort?: 'name' | 'plays' | 'search';
+	reverse?: boolean;
+	limit?: number;
+	offset?: number;
+	limitPerCategory?: number;
+	search?: string;
+	category?: string;
 }
 
 export default class TheatreWrapper {
-	constructor(client) {
-		/**
-		 * @type {import('pg').Client}
-		 */
+	client: Client;
+	constructor(client: Client) {
 		this.client = client;
 	}
-	/**
-	 *
-	 * @param {number} index
-	 * @returns {Promise<string>}
-	 */
-	async indexID(index) {
+	async indexID(index: number): Promise<string> {
 		const {
 			rows: [result],
 		} = await this.client.query('SELECT id FROM theatre WHERE index = $1;', [
@@ -111,12 +124,7 @@ export default class TheatreWrapper {
 
 		return result.id;
 	}
-	/**
-	 *
-	 * @param {string} id
-	 * @returns {Promise<TheatreEntry>}
-	 */
-	async show(id) {
+	async show(id: string): Promise<TheatreEntry> {
 		const {
 			rows: [row],
 		} = await this.client.query('SELECT * FROM theatre WHERE id = $1', [id]);
@@ -127,11 +135,10 @@ export default class TheatreWrapper {
 
 		return rowTo(row);
 	}
-	/**
-	 * @param {{leastGreatest?:boolean,sort?:'name'|'plays'|'search',reverse?:boolean,limit?:number,offset?:number,limitPerCategory?:number,search?:string,category?:string}} [options]
-	 * @returns {Promise<{total:TheatreEntry[],entries:TheatreEntry[]}>}
-	 */
-	async list(options = {}) {
+	async list(options: ListOptions = {}): Promise<{
+		total: number;
+		entries: TheatreEntry[];
+	}> {
 		// 0: select, 1: condition, 3: order, 3: limit, 4: offset
 		const select = [];
 		const conditions = [];
@@ -293,6 +300,7 @@ export default class TheatreWrapper {
 			category,
 			src,
 			controls,
+			plays: 0,
 		};
 
 		validate(entry);

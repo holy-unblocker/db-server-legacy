@@ -1,16 +1,13 @@
+import type { Client } from 'pg';
+
 export const proxyTypes = ['ultraviolet', 'rammerhead', 'stomp'];
 
-/**
- * @typedef {object} Compat
- * @property {string} host
- * @property {'ultraviolet'|'rammerhead'|'stomp'} proxy
- */
+interface Compat {
+	host: string;
+	proxy: 'ultraviolet' | 'rammerhead' | 'stomp';
+}
 
-/**
- *
- * @param {Compat} compat
- */
-export function validate(compat) {
+export function validate(compat: Compat): compat is Compat {
 	if ('host' in compat) {
 		if (typeof compat.host !== 'string') {
 			throw new TypeError('Compat host was not a string');
@@ -24,21 +21,16 @@ export function validate(compat) {
 			);
 		}
 	}
+
+	return true;
 }
 
 export default class CompatWrapper {
-	constructor(client) {
-		/**
-		 * @type {import('pg').Client}
-		 */
+	client: Client;
+	constructor(client: Client) {
 		this.client = client;
 	}
-	/**
-	 *
-	 * @param {string} host
-	 * @returns {Promise<Compat>}
-	 */
-	async show(host) {
+	async show(host: string): Promise<Compat> {
 		const {
 			rows: [result],
 		} = await this.client.query('SELECT * FROM compat WHERE host = $1', [host]);
@@ -49,19 +41,11 @@ export default class CompatWrapper {
 
 		return result;
 	}
-	/**
-	 * @returns {Promise<Compat[]>}
-	 */
-	async list() {
+	async list(): Promise<Compat[]> {
 		const { rows: compat } = await this.client.query('SELECT * FROM compat;');
-
 		return compat;
 	}
-	/**
-	 * @param {string} host
-	 * @returns {Promise<boolean>} success
-	 */
-	async delete(host) {
+	async delete(host: string): Promise<Boolean> {
 		const { rowCount } = await this.client.query(
 			'DELETE FROM compat WHERE host = $1;',
 			[host]
@@ -69,14 +53,8 @@ export default class CompatWrapper {
 
 		return rowCount !== 0;
 	}
-	/**
-	 *
-	 * @param {string} host
-	 * @param {string} proxy
-	 * @returns {Promise<Compat>}
-	 */
-	async create(host, proxy) {
-		const compat = {
+	async create(host: Compat['host'], proxy: Compat['proxy']): Promise<Compat> {
+		const compat: Compat = {
 			host,
 			proxy,
 		};
@@ -90,13 +68,7 @@ export default class CompatWrapper {
 
 		return compat;
 	}
-	/**
-	 *
-	 * @param {string} host
-	 * @param {string} [proxy]
-	 * @returns {Promise<Compat>}
-	 */
-	async update(host, proxy) {
+	async update(host: Compat['host'], proxy?: Compat['proxy']): Promise<Compat> {
 		let compat = await this.show(host);
 
 		if (proxy === undefined) {

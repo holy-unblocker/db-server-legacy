@@ -1,9 +1,20 @@
 import TheatreWrapper from './TheatreWrapper.js';
-import HTTPErrors from 'http-errors';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import createError from 'http-errors';
+import type { Client } from 'pg';
 
 const notExist = /Entry with ID .*? doesn't exist/;
 
-export default async function registerTheatre(fastify, { cors, client }) {
+export default async function registerTheatre(
+	fastify: FastifyInstance,
+	{
+		cors,
+		client,
+	}: {
+		cors: (req: FastifyRequest, reply: FastifyReply) => void;
+		client: Client;
+	}
+) {
 	const theatre = new TheatreWrapper(client);
 
 	fastify.route({
@@ -51,10 +62,10 @@ export default async function registerTheatre(fastify, { cors, client }) {
 			cors(request, reply);
 
 			try {
-				reply.send(await theatre.show(request.params.id));
+				reply.send(await theatre.show((request.params as { id: string }).id));
 			} catch (error) {
 				if (notExist.test(error)) {
-					throw new HTTPErrors.NotFound();
+					throw new createError.NotFound();
 				} else {
 					throw error;
 				}
@@ -78,11 +89,11 @@ export default async function registerTheatre(fastify, { cors, client }) {
 			cors(request, reply);
 
 			try {
-				await theatre.countPlay(request.params.id);
+				await theatre.countPlay((request.params as { id: string }).id);
 				reply.send({});
 			} catch (error) {
 				if (notExist.test(error)) {
-					throw new HTTPErrors.NotFound();
+					throw new createError.NotFound();
 				} else {
 					throw error;
 				}
