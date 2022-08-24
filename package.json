@@ -4,8 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "tsc",
-		"build:watch": "tsc -w",
-		"start": "node dist/cli/server.js"
+		"build:watch": "tsc -w"
 	},
 	"dependencies": {
 		"commander": "^9.2.0",
