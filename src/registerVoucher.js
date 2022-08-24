@@ -1,17 +1,11 @@
-import { fetchCloudflare } from './CloudflareCommon.js';
+import Cloudflare from './Cloudflare.js';
 import VoucherWrapper, { FLOOR_TLD_PRICES } from './VoucherWrapper.js';
-import Cloudflare from 'cloudflare';
 import { XMLParser } from 'fast-xml-parser';
 import HTTPErrors from 'http-errors';
 import fetch from 'node-fetch';
 import { readFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const DNS = JSON.parse(await readFile(join(__dirname, 'DNS.json')));
-
+const DNS = JSON.parse(await readFile('./DNS.json'));
 const NOT_EXIST = /Voucher with code .*? doesn't exist/;
 const VALID_DOMAIN_NAME = /^[a-z0-9-]*$/i;
 
@@ -275,15 +269,7 @@ export default async function registerVoucher(
 					await Promise.all(
 						rules.map(async rule => {
 							try {
-								await fetchCloudflare(
-									cfKey,
-									cfEmail,
-									`v4/zones/${id}/pagerules`,
-									{
-										method: 'POST',
-										body: rule,
-									}
-								);
+								await cf.post(`v4/zones/${id}/pagerules`, rule);
 							} catch (error) {
 								console.error('Failure adding page rule:', rule, error);
 								throw new HTTPErrors.InternalServerError(

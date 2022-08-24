@@ -1,9 +1,10 @@
-import Server from '../src/Server.js';
-import VoucherWrapper, { TLD_TYPES } from '../src/VoucherWrapper.js';
+import Server from '../Server.js';
+import VoucherWrapper, { TLD_TYPES } from '../VoucherWrapper.js';
 import { Command } from 'commander';
+import { expand } from 'dotenv-expand';
 import { config } from 'dotenv-flow';
 
-config();
+expand(config());
 
 const program = new Command();
 

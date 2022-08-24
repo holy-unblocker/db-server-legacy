@@ -1,12 +1,13 @@
-import Server from '../src/Server.js';
-import registerCompat from '../src/registerCompat.js';
-import registerTheatre from '../src/registerTheatre.js';
-import registerVoucher from '../src/registerVoucher.js';
+import Server from '../Server.js';
+import registerCompat from '../registerCompat.js';
+import registerTheatre from '../registerTheatre.js';
+import registerVoucher from '../registerVoucher.js';
 import { Command } from 'commander';
+import { expand } from 'dotenv-expand';
 import { config } from 'dotenv-flow';
-import Fastify from 'fastify';
+import fastify from 'fastify';
 
-config();
+expand(config());
 
 function cors(request, reply) {
 	reply.header('access-control-allow-headers', '*');
@@ -56,17 +57,17 @@ program
 			port,
 			host,
 		}) => {
-			const server = new Server();
-			await server.openDB();
+			const db = new Server();
+			await db.openDB();
 			console.log('DB open');
 
-			const fastify = Fastify({
+			const server = fastify({
 				logger: {
 					level: 'error',
 				},
 			});
 
-			fastify.route({
+			server.route({
 				url: '*',
 				method: 'OPTIONS',
 				handler(request, reply) {
@@ -75,21 +76,21 @@ program
 				},
 			});
 
-			fastify.register(registerTheatre, {
+			server.register(registerTheatre, {
 				prefix: '/theatre',
-				server,
+				db,
 				cors,
 			});
 
-			fastify.register(registerCompat, {
+			server.register(registerCompat, {
 				prefix: '/compat',
-				server,
+				db,
 				cors,
 			});
 
-			fastify.register(registerVoucher, {
+			server.register(registerVoucher, {
 				prefix: '/vouchers',
-				server,
+				db,
 				cors,
 				nameserver1,
 				nameserver2,
@@ -98,7 +99,7 @@ program
 				namesiloKey,
 			});
 
-			fastify.listen(port, host, (error, url) => {
+			server.listen(port, host, (error, url) => {
 				if (error) {
 					console.error(error);
 					process.exit(1);
