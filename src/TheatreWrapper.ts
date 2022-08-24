@@ -33,7 +33,8 @@ interface TheatreEntry {
 		| 'emulator.genesis'
 		| 'flash'
 		| 'embed'
-		| 'proxy';
+		| 'proxy'
+		| string;
 	controls: Control[];
 	category: string[];
 	id: string;
@@ -221,11 +222,7 @@ export default class TheatreWrapper {
 			entries,
 		};
 	}
-	/**
-	 * @param {string} id
-	 * @returns {Promise<boolean>} success
-	 */
-	async delete(id) {
+	async delete(id: string): Promise<boolean> {
 		const { rowCount } = await this.client.query(
 			'DELETE FROM theatre WHERE id = $1;',
 			[id]
@@ -233,16 +230,13 @@ export default class TheatreWrapper {
 
 		return rowCount !== 0;
 	}
-	/**
-	 *
-	 * @param {string} name
-	 * @param {string} type
-	 * @param {string} src
-	 * @param {string[]} category
-	 * @param {Control[]} category
-	 * @returns {Promise<TheatreEntry>}
-	 */
-	async create(name, type, src, category, controls) {
+	async create(
+		name: TheatreEntry['name'],
+		type: TheatreEntry['type'],
+		src: TheatreEntry['src'],
+		category: TheatreEntry['category'],
+		controls: TheatreEntry['controls']
+	): Promise<TheatreEntry> {
 		const entry = {
 			id: Math.random().toString(36).slice(2),
 			name,
@@ -255,32 +249,28 @@ export default class TheatreWrapper {
 
 		validate(entry);
 
+		const vars = [];
+
 		await this.client.query(
-			'INSERT INTO theatre (id, name, type, category, src, plays, controls) VALUES ($1, $2, $3, $4, $5, $6, $7);',
-			[
-				entry.id,
-				entry.name,
-				entry.type,
-				entry.category.join(','),
-				entry.src,
-				entry.plays,
-				JSON.stringify(entry.controls),
-			]
+			`INSERT INTO theatre (id, name, type, category, src, plays, controls) VALUES ($${vars.push(
+				entry.id
+			)}, $${vars.push(entry.name)}, $${vars.push(entry.type)}, $${vars.push(
+				entry.category.join(', ')
+			)}, $${vars.push(entry.src)}, $${vars.push(
+				entry.plays
+			)}, $${JSON.stringify(entry.controls)});`
 		);
 
 		return entry;
 	}
-	/**
-	 *
-	 * @param {string} id
-	 * @param {string} [name]
-	 * @param {string} [type]
-	 * @param {string} [src]
-	 * @param {string[]} category
-	 * @param {Control[]} [controls]
-	 * @returns {Promise<TheatreEntry>}
-	 */
-	async update(id, name, type, src, category, controls) {
+	async update(
+		id: TheatreEntry['id'],
+		name: TheatreEntry['name'],
+		type: TheatreEntry['type'],
+		src: TheatreEntry['src'],
+		category: TheatreEntry['category'],
+		controls: TheatreEntry['controls']
+	) {
 		let entry = await this.show(id);
 
 		if (name === undefined) name = entry.name;
@@ -319,12 +309,7 @@ export default class TheatreWrapper {
 
 		return entry;
 	}
-	/**
-	 *
-	 * @param {string} id
-	 * @returns {Promise<boolean>} success
-	 */
-	async countPlay(id) {
+	async countPlay(id: string): Promise<boolean> {
 		const { rowCount } = await this.client.query(
 			'UPDATE theatre SET plays = plays + 1 WHERE id = $1',
 			[id]

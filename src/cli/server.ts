@@ -21,7 +21,7 @@ const program = new Command();
 
 program
 	.option('-h, --host <string>', 'Listening host', 'localhost')
-	.option('-p, --port <number>', 'Listening port', process.env.PORT || 80)
+	.option('-p, --port <number>', 'Listening port', process.env.PORT || '80')
 	.action(async ({ port, host }) => {
 		const client = await dbConnect();
 		console.log('DB open');
@@ -57,11 +57,6 @@ program
 			prefix: '/vouchers',
 			client,
 			cors,
-			nameserver1,
-			nameserver2,
-			cfEmail,
-			cfKey,
-			namesiloKey,
 		});
 
 		server.listen(port, host, (error, url) => {

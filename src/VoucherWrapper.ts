@@ -13,7 +13,7 @@ export const FLOOR_TLD_PRICES = {
 
 interface Voucher {
 	code: string;
-	tld: '.com' | '.org' | '.net' | '.us' | '.xyz';
+	tld: '.com' | '.org' | '.net' | '.us' | '.xyz'|string;
 }
 
 function validateVoucher(voucher: Voucher) {

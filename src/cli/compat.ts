@@ -24,7 +24,7 @@ program
 	.command('update')
 	.argument('host')
 	.argument('proxy', `<${proxyTypes}>`)
-	.action(async (host, proxy) => {
+	.action(async (host: string, proxy: string) => {
 		const client = await dbConnect();
 		const compat = new CompatWrapper(client);
 		await compat.update(host, proxy);
@@ -35,7 +35,7 @@ program
 program
 	.command('show')
 	.argument('host')
-	.action(async (host) => {
+	.action(async (host: string) => {
 		const client = await dbConnect();
 		const compat = new CompatWrapper(client);
 		console.table(await compat.show(host));

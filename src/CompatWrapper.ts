@@ -4,7 +4,7 @@ export const proxyTypes = ['ultraviolet', 'rammerhead', 'stomp'];
 
 interface Compat {
 	host: string;
-	proxy: 'ultraviolet' | 'rammerhead' | 'stomp';
+	proxy: 'ultraviolet' | 'rammerhead' | 'stomp' | string;
 }
 
 export function validate(compat: Compat): compat is Compat {

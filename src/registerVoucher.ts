@@ -10,13 +10,12 @@ import {
 	namesiloKey,
 } from './collectENV.js';
 import { XMLParser } from 'fast-xml-parser';
-import { FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import createError from 'http-errors';
 import fetch from 'node-fetch';
 import { readFile } from 'node:fs/promises';
 import type { Client } from 'pg';
 
-const dns = JSON.parse(await readFile('./DNS.json', 'utf-8'));
 const notExist = /Voucher with code .*? doesn't exist/;
 const validDomainName = /^[a-z0-9-]*$/i;
 
@@ -28,7 +27,7 @@ interface NamesiloAPI {
 }
 
 export default async function registerVoucher(
-	fastify,
+	fastify: FastifyInstance,
 	{
 		cors,
 		client,
@@ -68,7 +67,9 @@ export default async function registerVoucher(
 			cors(request, reply);
 
 			try {
-				const { tld } = await voucher.show(request.params.voucher);
+				const { tld } = await voucher.show(
+					(request.params as { voucher: string }).voucher
+				);
 
 				reply.send({
 					tld,
@@ -110,7 +111,9 @@ export default async function registerVoucher(
 			cors(request, reply);
 
 			try {
-				const { tld } = await voucher.show(request.params.voucher);
+				const { tld } = await voucher.show(
+					(request.body as { voucher: string }).voucher
+				);
 
 				const floorPrice = FLOOR_TLD_PRICES[tld];
 
@@ -122,11 +125,13 @@ export default async function registerVoucher(
 
 				// if not thrown, the code is valid
 
-				if (!validDomainName.test(request.body.domain)) {
+				if (
+					!validDomainName.test((request.body as { domain: string }).domain)
+				) {
 					throw new createError.BadRequest('Invalid domain name.');
 				}
 
-				const host = `${request.body.domain}${tld}`;
+				const host = `${(request.body as { domain: string }).domain}${tld}`;
 
 				// AVABILITY
 				{
@@ -153,7 +158,7 @@ export default async function registerVoucher(
 					}
 				}
 
-				await voucher.delete(request.params.voucher);
+				await voucher.delete((request.params as { voucher: string }).voucher);
 
 				// REGISTER
 				console.log('REGISTER', host);
@@ -173,10 +178,7 @@ export default async function registerVoucher(
 							})
 					);
 
-					/**
-					 * @type {NamesiloAPI}
-					 */
-					const data = xml.parse(await request.text());
+					const data: NamesiloAPI = xml.parse(await request.text());
 
 					if (data.namesilo.reply.detail !== 'success') {
 						console.error(data.namesilo.reply);

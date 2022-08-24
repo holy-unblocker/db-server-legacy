@@ -3,21 +3,17 @@ import dbConnect from '../dbConnect.js';
 import { Command } from 'commander';
 import { expand } from 'dotenv-expand';
 import { config } from 'dotenv-flow';
+import type { Client } from 'pg';
 import promptly from 'promptly';
 
 expand(config());
 
-/**
- *
- * @param {import('pg').Client} client
- * @param {string|number} i
- * @returns {Promise<string>}
- */
-async function resolveID(client, i, confirm) {
+async function resolveID(client: Client, i: string, confirm?: boolean) {
 	const games = new TheatreWrapper(client);
+	const number = parseInt(i);
 
-	if (!isNaN(i)) {
-		const id = await games.indexID(i);
+	if (!isNaN(number)) {
+		const id = await games.indexID(number);
 
 		if (confirm !== true) {
 			return id;
@@ -58,7 +54,7 @@ program
 
 		const game = await games.create(name, type, src, category, controls);
 
-		console.log(`Game created. ID: ${game.id.toString('hex')}`);
+		console.log(`Game created. ID: ${game.id.toString()}`);
 
 		await client.end();
 	});
@@ -117,7 +113,6 @@ program
 
 		for (const game of (await games.list(category)).entries) {
 			const g = { ...game };
-			delete g.index;
 			delete g.controls;
 			list.push(g);
 		}
