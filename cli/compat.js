@@ -1,10 +1,9 @@
 import CompatWrapper, { proxyTypes } from '../CompatWrapper.js';
 import Server from '../Server.js';
 import { Command } from 'commander';
-import { expand } from 'dotenv-expand';
 import { config } from 'dotenv-flow';
 
-expand(config());
+config();
 
 const program = new Command();
 

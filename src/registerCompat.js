@@ -2,7 +2,7 @@ import CompatWrapper from './CompatWrapper.js';
 import domianNameParser from 'effective-domain-name-parser';
 import HTTPErrors from 'http-errors';
 
-const NOT_EXIST = /Proxy with host .*? doesn't exist/;
+const notExist = /Proxy with host .*? doesn't exist/;
 
 export default async function registerCompat(fastify, { cors, db }) {
 	const compat = new CompatWrapper(db);
@@ -25,7 +25,7 @@ export default async function registerCompat(fastify, { cors, db }) {
 			try {
 				reply.send(await compat.show(`${parsed.sld}.${parsed.tld}`));
 			} catch (error) {
-				if (NOT_EXIST.test(error)) {
+				if (notExist.test(error)) {
 					throw new HTTPErrors.NotFound();
 				} else {
 					throw error;

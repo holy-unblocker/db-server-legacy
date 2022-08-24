@@ -1,4 +1,4 @@
-export const THEATRE_TYPES = [
+export const theatreTypes = [
 	'emulator.nes',
 	'emulator.gba',
 	'emulator.genesis',
@@ -80,9 +80,9 @@ export function validate(entry) {
 			throw new TypeError('Entry plays was not a number');
 
 	if ('type' in entry)
-		if (!THEATRE_TYPES.includes(entry.type))
+		if (!theatreTypes.includes(entry.type))
 			throw new TypeError(
-				`Entry type was not one of the following: ${THEATRE_TYPES}`
+				`Entry type was not one of the following: ${theatreTypes}`
 			);
 }
 

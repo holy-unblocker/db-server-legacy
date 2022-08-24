@@ -1,4 +1,4 @@
-export const PROXY_TYPES = ['ultraviolet', 'rammerhead', 'stomp'];
+export const proxyTypes = ['ultraviolet', 'rammerhead', 'stomp'];
 
 /**
  * @typedef {object} Compat
@@ -18,9 +18,9 @@ export function validate(compat) {
 	}
 
 	if ('proxy' in compat) {
-		if (!PROXY_TYPES.includes(compat.proxy)) {
+		if (!proxyTypes.includes(compat.proxy)) {
 			throw new TypeError(
-				`Proxy type was not one of the following: ${PROXY_TYPES}`
+				`Proxy type was not one of the following: ${proxyTypes}`
 			);
 		}
 	}

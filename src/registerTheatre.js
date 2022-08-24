@@ -1,7 +1,7 @@
 import TheatreWrapper from './TheatreWrapper.js';
 import HTTPErrors from 'http-errors';
 
-const NOT_EXIST = /Entry with ID .*? doesn't exist/;
+const notExist = /Entry with ID .*? doesn't exist/;
 
 export default async function registerTheatre(fastify, { cors, db }) {
 	const theatre = new TheatreWrapper(db);
@@ -53,7 +53,7 @@ export default async function registerTheatre(fastify, { cors, db }) {
 			try {
 				reply.send(await theatre.show(request.params.id));
 			} catch (error) {
-				if (NOT_EXIST.test(error)) {
+				if (notExist.test(error)) {
 					throw new HTTPErrors.NotFound();
 				} else {
 					throw error;
@@ -81,7 +81,7 @@ export default async function registerTheatre(fastify, { cors, db }) {
 				await theatre.countPlay(request.params.id);
 				reply.send({});
 			} catch (error) {
-				if (NOT_EXIST.test(error)) {
+				if (notExist.test(error)) {
 					throw new HTTPErrors.NotFound();
 				} else {
 					throw error;

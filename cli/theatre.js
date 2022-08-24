@@ -1,11 +1,10 @@
 import Server from '../Server.js';
 import TheatreWrapper, { theatreTypes } from '../TheatreWrapper.js';
 import { Command } from 'commander';
-import { expand } from 'dotenv-expand';
 import { config } from 'dotenv-flow';
 import promptly from 'promptly';
 
-expand(config());
+config();
 
 /**
  *

@@ -6,8 +6,8 @@ import fetch from 'node-fetch';
 import { readFile } from 'node:fs/promises';
 
 const DNS = JSON.parse(await readFile('./DNS.json'));
-const NOT_EXIST = /Voucher with code .*? doesn't exist/;
-const VALID_DOMAIN_NAME = /^[a-z0-9-]*$/i;
+const notExist = /Voucher with code .*? doesn't exist/;
+const validDomainName = /^[a-z0-9-]*$/i;
 
 /**
  *
@@ -56,7 +56,7 @@ export default async function registerVoucher(
 					tld,
 				});
 			} catch (error) {
-				if (NOT_EXIST.test(error)) {
+				if (notExist.test(error)) {
 					throw new HTTPErrors.NotFound('Invalid voucher.');
 				} else {
 					throw error;
@@ -104,7 +104,7 @@ export default async function registerVoucher(
 
 				// if not thrown, the code is valid
 
-				if (!VALID_DOMAIN_NAME.test(request.body.domain)) {
+				if (!validDomainName.test(request.body.domain)) {
 					throw new HTTPErrors.BadRequest('Invalid domain name.');
 				}
 
@@ -287,7 +287,7 @@ export default async function registerVoucher(
 					host,
 				});
 			} catch (error) {
-				if (NOT_EXIST.test(error)) {
+				if (notExist.test(error)) {
 					throw new HTTPErrors.NotFound('Invalid voucher.');
 				} else {
 					throw error;

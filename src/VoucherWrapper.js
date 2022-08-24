@@ -1,4 +1,4 @@
-export const TLD_TYPES = ['.com', '.org', '.net', '.us', '.xyz'];
+export const tldTypes = ['.com', '.org', '.net', '.us', '.xyz'];
 
 // (rounded to nearest whole)
 export const FLOOR_TLD_PRICES = {
@@ -27,9 +27,9 @@ export function validateVoucher(voucher) {
 	}
 
 	if ('tld' in voucher) {
-		if (!TLD_TYPES.includes(voucher.tld)) {
+		if (!tldTypes.includes(voucher.tld)) {
 			throw new TypeError(
-				`Voucher TLD was not one of the following: ${TLD_TYPES}`
+				`Voucher TLD was not one of the following: ${tldTypes}`
 			);
 		}
 	}
