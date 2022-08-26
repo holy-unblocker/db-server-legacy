@@ -111,7 +111,7 @@ export default async function registerVoucher(
 
 			try {
 				const { tld } = await voucher.show(
-					(request.body as { voucher: string }).voucher
+					(request.params as { voucher: string }).voucher
 				);
 
 				const floorPrice = FLOOR_TLD_PRICES[tld];
@@ -146,6 +146,8 @@ export default async function registerVoucher(
 
 					const data: NamesiloAPI = xml.parse(await request.text());
 
+					console.log(data, namesiloKey);
+
 					if (!data.namesilo.reply.available) {
 						throw new createError.NotFound('Domain unavailable.');
 					}
@@ -161,7 +163,7 @@ export default async function registerVoucher(
 
 				// REGISTER
 				console.log('REGISTER', host);
-				if (Date.now() === 0) {
+				{
 					const request = await fetch(
 						'https://www.namesilo.com/api/registerDomain?' +
 							new URLSearchParams({
@@ -188,7 +190,7 @@ export default async function registerVoucher(
 				}
 
 				console.log('delaying configuration', host);
-				await new Promise((resolve) => setTimeout(resolve, 8e3));
+				await new Promise((resolve) => setTimeout(resolve, 10e3));
 
 				// CONFIGURE
 				console.log('configure', host);

@@ -1,10 +1,7 @@
+import '../collectENV.js';
 import CompatWrapper, { proxyTypes } from '../CompatWrapper.js';
 import dbConnect from '../dbConnect.js';
 import { Command } from 'commander';
-import { expand } from 'dotenv-expand';
-import { config } from 'dotenv-flow';
-
-expand(config());
 
 const program = new Command();
 

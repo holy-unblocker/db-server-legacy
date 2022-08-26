@@ -1,3 +1,8 @@
+import { expand } from 'dotenv-expand';
+import { config } from 'dotenv-flow';
+
+expand(config());
+
 export const cfEmail: string = process.env.CF_EMAIL;
 export const cfKey: string = process.env.CF_KEY;
 export const namesiloKey: string = process.env.NAMESILO;

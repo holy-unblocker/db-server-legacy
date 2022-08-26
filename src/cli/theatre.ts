@@ -1,12 +1,9 @@
+import '../collectENV.js';
 import TheatreWrapper, { theatreTypes } from '../TheatreWrapper.js';
 import dbConnect from '../dbConnect.js';
 import { Command } from 'commander';
-import { expand } from 'dotenv-expand';
-import { config } from 'dotenv-flow';
 import type { Client } from 'pg';
 import promptly from 'promptly';
-
-expand(config());
 
 async function resolveID(client: Client, i: string, confirm?: boolean) {
 	const games = new TheatreWrapper(client);

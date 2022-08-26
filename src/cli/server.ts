@@ -1,13 +1,10 @@
+import '../collectENV.js';
 import dbConnect from '../dbConnect.js';
 import registerCompat from '../registerCompat.js';
 import registerTheatre from '../registerTheatre.js';
 import registerVoucher from '../registerVoucher.js';
 import { Command } from 'commander';
-import { expand } from 'dotenv-expand';
-import { config } from 'dotenv-flow';
 import fastify from 'fastify';
-
-expand(config());
 
 function cors(request, reply) {
 	reply.header('access-control-allow-headers', '*');
