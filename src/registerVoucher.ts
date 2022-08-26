@@ -10,7 +10,7 @@ import {
 import Cloudflare from '@e9x/cloudflare';
 import type { Zone } from '@e9x/cloudflare/v4';
 import { XMLParser } from 'fast-xml-parser';
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import createError from 'http-errors';
 import fetch from 'node-fetch';
 import type { Client } from 'pg';
@@ -193,7 +193,7 @@ export default async function registerVoucher(
 				// CONFIGURE
 				console.log('configure', host);
 
-				let zone = await cf.post<Zone, { name: string }>(`v4/zones`, {
+				const zone = await cf.post<Zone, { name: string }>(`v4/zones`, {
 					name: host,
 				});
 
