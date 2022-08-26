@@ -161,7 +161,7 @@ export default async function registerVoucher(
 
 				// REGISTER
 				console.log('REGISTER', host);
-				{
+				if (Date.now() === 0) {
 					const request = await fetch(
 						'https://www.namesilo.com/api/registerDomain?' +
 							new URLSearchParams({
