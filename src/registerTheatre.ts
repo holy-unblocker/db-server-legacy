@@ -76,15 +76,6 @@ export default async function registerTheatre(
 	fastify.route({
 		url: '/:id/plays',
 		method: 'PUT',
-		schema: {
-			querystring: {
-				type: 'object',
-				properties: {
-					token: { type: 'string' },
-				},
-				required: ['token'],
-			},
-		},
 		async handler(request, reply) {
 			cors(request, reply);
 
