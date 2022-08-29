@@ -146,8 +146,6 @@ export default async function registerVoucher(
 
 					const data: NamesiloAPI = xml.parse(await request.text());
 
-					console.log(data, namesiloKey);
-
 					if (!data.namesilo.reply.available) {
 						throw new createError.NotFound('Domain unavailable.');
 					}
@@ -169,10 +167,10 @@ export default async function registerVoucher(
 							new URLSearchParams({
 								version: '1',
 								type: 'xml',
+								domain: host,
 								key: namesiloKey,
 								ns1: nameserver1,
 								ns2: nameserver2,
-								domain: host,
 								years: '1',
 								private: tld === '.us' ? '0' : '1',
 								auto_renew: '0',
@@ -198,6 +196,34 @@ export default async function registerVoucher(
 				const zone = await cf.post<Zone, { name: string }>(`v4/zones`, {
 					name: host,
 				});
+
+				if (
+					zone.name_servers[0] !== nameserver1 ||
+					zone.name_servers[1] !== nameserver2
+				) {
+					console.error(
+						`Cloudflare's requested nameservers did not match nameservers in ENV. Current config is`,
+						[nameserver1, nameserver2],
+						', got',
+						zone.name_servers
+					);
+
+					const request = await fetch(
+						'https://www.namesilo.com/api/changeNameServers?' +
+							new URLSearchParams({
+								version: '1',
+								type: 'xml',
+								key: namesiloKey,
+								domain: host,
+								ns1: zone.name_servers[0],
+								ns2: zone.name_servers[1],
+							})
+					);
+
+					const data = await request.text();
+
+					console.log('Updated nameservers.', request.status, data);
+				}
 
 				const newRules = getRules(zone);
 
