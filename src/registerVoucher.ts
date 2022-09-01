@@ -109,10 +109,11 @@ export default async function registerVoucher(
 		async handler(request, reply) {
 			cors(request, reply);
 
+			const { domain: domainID } = request.body as { domain: string };
+			const { voucher: voucherID } = request.params as { voucher: string };
+
 			try {
-				const { tld } = await voucher.show(
-					(request.params as { voucher: string }).voucher
-				);
+				const { tld } = await voucher.show(voucherID);
 
 				const floorPrice = FLOOR_TLD_PRICES[tld];
 
@@ -124,13 +125,11 @@ export default async function registerVoucher(
 
 				// if not thrown, the code is valid
 
-				if (
-					!validDomainName.test((request.body as { domain: string }).domain)
-				) {
+				if (!validDomainName.test(domainID)) {
 					throw new createError.BadRequest('Invalid domain name.');
 				}
 
-				const host = `${(request.body as { domain: string }).domain}${tld}`;
+				const host = `${domainID}${tld}`;
 
 				// AVABILITY
 				{
@@ -157,7 +156,9 @@ export default async function registerVoucher(
 					}
 				}
 
-				await voucher.delete((request.params as { voucher: string }).voucher);
+				await voucher.delete(voucherID);
+
+				console.log('Deleted voucher', { voucher: voucherID, tld });
 
 				// REGISTER
 				console.log('REGISTER', host);
