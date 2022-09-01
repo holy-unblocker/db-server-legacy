@@ -109,8 +109,15 @@ export default async function registerVoucher(
 		async handler(request, reply) {
 			cors(request, reply);
 
-			const { domain: domainID } = request.body as { domain: string };
-			const { voucher: voucherID } = request.params as { voucher: string };
+			let { domain: domainID } = request.body as { domain?: string };
+			let { voucher: voucherID } = request.params as { voucher?: string };
+
+			if (typeof voucherID !== 'string' || typeof domainID !== 'string')
+				throw new createError.BadRequest();
+
+			domainID = domainID.toLowerCase();
+			// vouchers are lowercase
+			voucherID = voucherID.toLowerCase();
 
 			try {
 				const { tld } = await voucher.show(voucherID);
