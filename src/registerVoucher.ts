@@ -163,12 +163,20 @@ export default async function registerVoucher(
 					}
 				}
 
-				await voucher.delete(voucherID);
+				console.log('Processing voucher', {
+					voucher: voucherID,
+					domain: domainID,
+					tld,
+				});
 
-				console.log('Deleted voucher', { voucher: voucherID, tld });
+				if (!(await voucher.delete(voucherID))) {
+					throw new createError.InternalServerError('Race condition?');
+				}
+
+				console.log(voucherID, 'Deleted voucher');
 
 				// REGISTER
-				console.log('REGISTER', host);
+				console.log(voucherID, 'Register', host);
 				{
 					const request = await fetch(
 						'https://www.namesilo.com/api/registerDomain?' +
