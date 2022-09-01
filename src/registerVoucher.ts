@@ -180,7 +180,14 @@ export default async function registerVoucher(
 								ns1: nameserver1,
 								ns2: nameserver2,
 								years: '1',
-								private: tld === '.us' ? '0' : '1',
+								...(tld === '.us'
+									? {
+											private: '0',
+											// may be subject to change if you're running your own DB server
+											usnc: 'C21',
+											usap: 'P1',
+									  }
+									: { private: '1' }),
 								auto_renew: '0',
 							})
 					);
