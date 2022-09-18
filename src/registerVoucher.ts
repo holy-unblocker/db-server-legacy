@@ -159,6 +159,7 @@ export default async function registerVoucher(
 					const price = Number(data.namesilo.reply.available.domain['@_price']);
 
 					if (isNaN(price) || price > floorPrice) {
+						console.log(`${host} costs ${price}, exceeds ${floorPrice}`);
 						throw new createError.BadRequest('Domain price exceeds limit.');
 					}
 				}
