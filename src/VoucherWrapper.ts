@@ -4,8 +4,8 @@ export const tldTypes = ['.com', '.org', '.net', '.us', '.xyz'];
 
 // (rounded to nearest whole)
 export const FLOOR_TLD_PRICES = {
-	'.com': 10,
-	'.org': 11,
+	'.com': 12,
+	'.org': 12,
 	'.net': 12,
 	'.us': 3,
 	'.xyz': 3,
