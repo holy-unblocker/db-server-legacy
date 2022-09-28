@@ -1,5 +1,5 @@
 import CompatWrapper from './CompatWrapper.js';
-import domianNameParser from 'effective-domain-name-parser';
+import { parse } from 'effective-domain-name-parser';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import createError from 'http-errors';
 import type { Client } from 'pg';
@@ -31,14 +31,12 @@ export default async function registerCompat(
 		},
 		async handler(request, reply) {
 			cors(request, reply);
-			const parsed = domianNameParser.parse(
-				(request.params as { host: string }).host
-			);
+			const parsed = parse((request.params as { host: string }).host);
 
 			try {
 				reply.send(await compat.show(`${parsed.sld}.${parsed.tld}`));
 			} catch (error) {
-				if (notExist.test(error)) throw new createError.NotFound();
+				if (notExist.test(String(error))) throw new createError.NotFound();
 				else throw error;
 			}
 		},

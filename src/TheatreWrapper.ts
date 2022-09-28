@@ -12,7 +12,7 @@ export const theatreTypes = [
 /**
  * one of the above types or a letter/key such as A,B,TAB,SPACE,SHIFT
  */
-type KeyLike =
+export type KeyLike =
 	| 'mouseleft'
 	| 'mouseright'
 	| 'scrollup'
@@ -21,12 +21,12 @@ type KeyLike =
 	| 'arrows'
 	| string;
 
-interface Control {
+export interface Control {
 	keys: KeyLike[];
 	label: string;
 }
 
-interface TheatreEntry {
+export interface TheatreEntry {
 	type:
 		| 'emulator.nes'
 		| 'emulator.gba'
@@ -96,7 +96,7 @@ function validate(entry: TheatreEntry): entry is TheatreEntry {
 	return true;
 }
 
-interface ListOptions {
+export interface ListOptions {
 	leastGreatest?: boolean;
 	sort?: 'name' | 'plays' | 'search';
 	reverse?: boolean;

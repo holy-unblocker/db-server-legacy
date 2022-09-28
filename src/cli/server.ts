@@ -4,9 +4,10 @@ import registerCompat from '../registerCompat.js';
 import registerTheatre from '../registerTheatre.js';
 import registerVoucher from '../registerVoucher.js';
 import { Command } from 'commander';
+import type { FastifyRequest, FastifyReply } from 'fastify';
 import fastify from 'fastify';
 
-function cors(request, reply) {
+function cors(request: FastifyRequest, reply: FastifyReply) {
 	reply.header('access-control-allow-headers', '*');
 	reply.header('access-control-allow-origin', request.headers.origin || '*');
 	reply.header('access-control-allow-max-age', '600');

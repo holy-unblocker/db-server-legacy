@@ -3,7 +3,7 @@ import type { Client } from 'pg';
 export const tldTypes = ['.com', '.org', '.net', '.us', '.xyz'];
 
 // (rounded to nearest whole)
-export const FLOOR_TLD_PRICES = {
+export const FLOOR_TLD_PRICES: Record<string, number> = {
 	'.com': 12,
 	'.org': 12,
 	'.net': 12,

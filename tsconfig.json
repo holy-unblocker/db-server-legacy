@@ -7,7 +7,7 @@
 		"types": ["node"],
 		"outDir": "dist",
 		"esModuleInterop": true,
-		"allowJs": true
+		"strict": true
 	},
 	"include": ["src/**/*"]
 }

@@ -1,4 +1,5 @@
 import '../collectENV.js';
+import type { TheatreEntry } from '../TheatreWrapper.js';
 import TheatreWrapper, { theatreTypes } from '../TheatreWrapper.js';
 import dbConnect from '../dbConnect.js';
 import { Command } from 'commander';
@@ -106,12 +107,12 @@ program
 		const client = await dbConnect();
 		const games = new TheatreWrapper(client);
 
-		const list = [];
+		const list: Omit<TheatreEntry, 'controls'>[] = [];
 
 		for (const game of (await games.list(category)).entries) {
-			const g = { ...game };
+			const g: Partial<TheatreEntry> = { ...game };
 			delete g.controls;
-			list.push(g);
+			list.push(g as Omit<TheatreEntry, 'controls'>);
 		}
 
 		console.table(list);

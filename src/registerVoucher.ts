@@ -74,7 +74,7 @@ export default async function registerVoucher(
 					tld,
 				});
 			} catch (error) {
-				if (notExist.test(error)) {
+				if (notExist.test(String(error))) {
 					throw new createError.NotFound('Invalid voucher.');
 				} else {
 					throw error;
@@ -282,7 +282,7 @@ export default async function registerVoucher(
 					host,
 				});
 			} catch (error) {
-				if (notExist.test(error)) {
+				if (notExist.test(String(error))) {
 					throw new createError.NotFound('Invalid voucher.');
 				} else {
 					throw error;

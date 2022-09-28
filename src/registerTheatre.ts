@@ -1,3 +1,4 @@
+import type { ListOptions, TheatreEntry } from './TheatreWrapper.js';
 import TheatreWrapper from './TheatreWrapper.js';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import createError from 'http-errors';
@@ -37,10 +38,14 @@ export default async function registerTheatre(
 		async handler(request, reply) {
 			cors(request, reply);
 
-			const data = await theatre.list(request.query);
+			const data = await theatre.list(request.query as ListOptions);
 
 			const send = {
-				entries: [],
+				entries: [] as {
+					name: TheatreEntry['name'];
+					id: TheatreEntry['id'];
+					category: TheatreEntry['category'];
+				}[],
 				total: data.total,
 			};
 
@@ -64,7 +69,7 @@ export default async function registerTheatre(
 			try {
 				reply.send(await theatre.show((request.params as { id: string }).id));
 			} catch (error) {
-				if (notExist.test(error)) {
+				if (notExist.test(String(error))) {
 					throw new createError.NotFound();
 				} else {
 					throw error;
@@ -83,7 +88,7 @@ export default async function registerTheatre(
 				await theatre.countPlay((request.params as { id: string }).id);
 				reply.send({});
 			} catch (error) {
-				if (notExist.test(error)) {
+				if (notExist.test(String(error))) {
 					throw new createError.NotFound();
 				} else {
 					throw error;
