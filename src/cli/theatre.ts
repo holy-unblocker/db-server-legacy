@@ -7,17 +7,17 @@ import type { Client } from 'pg';
 import promptly from 'promptly';
 
 async function resolveID(client: Client, i: string, confirm?: boolean) {
-	const games = new TheatreWrapper(client);
+	const theatre = new TheatreWrapper(client);
 	const number = parseInt(i);
 
 	if (!isNaN(number)) {
-		const id = await games.indexID(number);
+		const id = await theatre.indexID(number);
 
 		if (confirm !== true) {
 			return id;
 		}
 
-		console.table(await games.show(id));
+		console.table(await theatre.show(id));
 		if (await promptly.confirm('Is this the correct game? (y/n)')) {
 			return id;
 		} else {
@@ -42,7 +42,7 @@ program
 	.requiredOption('-s, --src <url>')
 	.action(async ({ name, type, src, category, controls }) => {
 		const client = await dbConnect();
-		const games = new TheatreWrapper(client);
+		const theatre = new TheatreWrapper(client);
 
 		if (typeof controls === 'string') controls = JSON.parse(controls);
 		else controls = [];
@@ -50,7 +50,7 @@ program
 		if (typeof category === 'string') category = category.split(',');
 		else category = [];
 
-		const game = await games.create(name, type, src, category, controls);
+		const game = await theatre.create(name, type, src, category, controls);
 
 		console.log(`Game created. ID: ${game.id.toString()}`);
 
@@ -67,11 +67,11 @@ program
 	.option('-s, --src <url>')
 	.action(async (id, { name, type, src, category, controls }) => {
 		const client = await dbConnect();
-		const games = new TheatreWrapper(client);
+		const theatre = new TheatreWrapper(client);
 		id = await resolveID(client, id);
 		if (typeof controls === 'string') controls = JSON.parse(controls);
 		if (typeof category === 'string') category = category.split(',');
-		await games.update(id, name, type, src, category, controls);
+		await theatre.update(id, name, type, src, category, controls);
 		console.log('Updated game.');
 		await client.end();
 	});
@@ -81,9 +81,9 @@ program
 	.argument('id')
 	.action(async (id) => {
 		const client = await dbConnect();
-		const games = new TheatreWrapper(client);
+		const theatre = new TheatreWrapper(client);
 		id = await resolveID(client, id);
-		console.table(await games.show(id));
+		console.table(await theatre.show(id));
 		await client.end();
 	});
 
@@ -92,9 +92,9 @@ program
 	.argument('id')
 	.action(async (id) => {
 		const client = await dbConnect();
-		const games = new TheatreWrapper(client);
+		const theatre = new TheatreWrapper(client);
 		id = await resolveID(client, id, true);
-		const deleted = await games.delete(id);
+		const deleted = await theatre.delete(id);
 		if (deleted) console.log('Game deleted.');
 		else console.log("Game wasn't deleted. Is the ID valid?");
 		await client.end();
@@ -105,11 +105,11 @@ program
 	.argument('[category]')
 	.action(async (category) => {
 		const client = await dbConnect();
-		const games = new TheatreWrapper(client);
+		const theatre = new TheatreWrapper(client);
 
 		const list: Omit<TheatreEntry, 'controls'>[] = [];
 
-		for (const game of (await games.list(category)).entries) {
+		for (const game of (await theatre.list(category)).entries) {
 			const g: Partial<TheatreEntry> = { ...game };
 			delete g.controls;
 			list.push(g as Omit<TheatreEntry, 'controls'>);
