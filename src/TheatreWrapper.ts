@@ -256,9 +256,10 @@ export default class TheatreWrapper {
 				entry.id
 			)}, $${vars.push(entry.name)}, $${vars.push(entry.type)}, $${vars.push(
 				entry.category.join(', ')
-			)}, $${vars.push(entry.src)}, $${vars.push(
-				entry.plays
-			)}, $${JSON.stringify(entry.controls)});`
+			)}, $${vars.push(entry.src)}, $${vars.push(entry.plays)}, $${vars.push(
+				JSON.stringify(entry.controls)
+			)});`,
+			vars
 		);
 
 		return entry;
