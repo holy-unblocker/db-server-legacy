@@ -249,7 +249,7 @@ export default class TheatreWrapper {
 
 		validate(entry);
 
-		const vars = [];
+		const vars: unknown[] = [];
 
 		await this.client.query(
 			`INSERT INTO theatre (id, name, type, category, src, plays, controls) VALUES ($${vars.push(
@@ -296,23 +296,24 @@ export default class TheatreWrapper {
 
 		validate(entry);
 
+		const vars: unknown[] = [];
+
 		await this.client.query(
-			'UPDATE theatre SET name = $1, type = $2, category = $3, src = $4, controls = $5 WHERE id = $6',
-			[
-				entry.name,
-				entry.type,
-				entry.category.join(','),
-				entry.src,
-				JSON.stringify(entry.controls),
-				entry.id,
-			]
+			`UPDATE theatre SET name = $${vars.push(entry.name)}, type = $${vars.push(
+				entry.type
+			)}, category = $${vars.push(
+				entry.category.join(',')
+			)}, src = $${vars.push(entry.src)}, controls = $${vars.push(
+				JSON.stringify(entry.controls)
+			)} WHERE id = $${vars.push(entry.id)}`,
+			vars
 		);
 
 		return entry;
 	}
 	async countPlay(id: string): Promise<boolean> {
 		const { rowCount } = await this.client.query(
-			'UPDATE theatre SET plays = plays + 1 WHERE id = $1',
+			`UPDATE theatre SET plays = plays + 1 WHERE id = $1`,
 			[id]
 		);
 
