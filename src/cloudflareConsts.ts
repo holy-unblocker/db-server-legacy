@@ -1,6 +1,6 @@
 import type { DNSRecord, Zone } from '@e9x/cloudflare/v4';
 
-export const getRules = (zone: Zone) => [
+export const getRules = (zoneName: Zone['name']) => [
 	{
 		status: 'active',
 		priority: 1,
@@ -10,7 +10,7 @@ export const getRules = (zone: Zone) => [
 				target: 'url',
 				constraint: {
 					operator: 'matches',
-					value: `${zone.name}/static/*`,
+					value: `${zoneName}/static/*`,
 				},
 			},
 		],
@@ -24,55 +24,37 @@ export const getRules = (zone: Zone) => [
 				target: 'url',
 				constraint: {
 					operator: 'matches',
-					value: `${zone.name}/theatre/*`,
+					value: `${zoneName}/theatre/*`,
 				},
 			},
 		],
 	},
 ];
 
-export const getDNS = () =>
+export const getDNS = (zoneName: Zone['name']) =>
 	<DNSRecord[]>[
 		{
-			name: 'rh',
+			name: `rh.${zoneName}`,
 			type: 'CNAME',
-			content: 'rh.holy.how',
+			content: 'rh.holyubofficial.net',
 			proxied: true,
 		},
 		{
-			name: 'uv',
+			name: `uv.${zoneName}`,
 			type: 'CNAME',
-			content: 'uv.holy.how',
+			content: 'uv.holyubofficial.net',
 			proxied: true,
 		},
 		{
-			name: 'a',
+			name: zoneName,
 			type: 'CNAME',
-			content: 'a.holy.how',
-			proxied: true,
-		},
-		{
-			name: '@',
-			type: 'CNAME',
-			content: 'static.holy.how',
+			content: 'holyubofficial.net',
 			proxied: true,
 		},
 		{
 			name: 'www',
 			type: 'CNAME',
-			content: 'static.holy.how',
-			proxied: true,
-		},
-		{
-			name: 'wm',
-			type: 'CNAME',
-			content: 'wm.holy.how',
-			proxied: true,
-		},
-		{
-			name: 'paln',
-			type: 'CNAME',
-			content: 'pal.holy.how',
+			content: 'www.holyubofficial.net',
 			proxied: true,
 		},
 	];

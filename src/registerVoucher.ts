@@ -249,9 +249,8 @@ export default async function registerVoucher(
 					console.log('Updated nameservers.', request.status, data);
 				}
 
-				const newRules = getRules(zone);
-
-				const newDNS = getDNS();
+				const newRules = getRules(zone.name);
+				const newDNS = getDNS(zone.name);
 
 				try {
 					await Promise.all([
