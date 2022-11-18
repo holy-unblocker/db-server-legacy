@@ -18,9 +18,8 @@ function cors(request: FastifyRequest, reply: FastifyReply) {
 const program = new Command();
 
 program
-	.option('-h, --host <string>', 'Listening host', 'localhost')
-	.option('-p, --port <number>', 'Listening port', process.env.PORT || '80')
-	.action(async ({ port, host }) => {
+	.option('-p, --port <number>', 'Listening port', process.env.HOST || '80')
+	.action(async ({ port }: { port: string }) => {
 		const client = await dbConnect();
 		console.log('DB open');
 
@@ -57,14 +56,19 @@ program
 			cors,
 		});
 
-		server.listen(port, host, (error, url) => {
-			if (error) {
-				console.error(error);
-				process.exit(1);
-			}
+		server.listen(
+			{
+				port: Number(port),
+			},
+			(error, url) => {
+				if (error) {
+					console.error(error);
+					process.exit(1);
+				}
 
-			console.log('Fastify server listening. View live at', url);
-		});
+				console.log('Fastify server listening. View live at', url);
+			}
+		);
 	});
 
 program.parse(process.argv);
