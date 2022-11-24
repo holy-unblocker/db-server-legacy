@@ -3,6 +3,7 @@ import type { Client } from 'pg';
 export const theatreTypes = [
 	'emulator.nes',
 	'emulator.gba',
+	'emulator.n64',
 	'emulator.genesis',
 	'flash',
 	'embed',
@@ -30,6 +31,7 @@ export interface TheatreEntry {
 	type:
 		| 'emulator.nes'
 		| 'emulator.gba'
+		| 'emulator.n64'
 		| 'emulator.genesis'
 		| 'flash'
 		| 'embed'
