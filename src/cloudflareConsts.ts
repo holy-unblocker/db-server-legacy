@@ -24,7 +24,7 @@ export const getRules = (zoneName: Zone['name']) => [
 				target: 'url',
 				constraint: {
 					operator: 'matches',
-					value: `${zoneName}/theatre/*`,
+					value: `${zoneName}/cdn/*`,
 				},
 			},
 		],
