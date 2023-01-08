@@ -7,10 +7,10 @@
 		"build:watch": "tsc -w"
 	},
 	"bin": {
-		"db-compat": "./compat.cjs",
-		"db-server": "./server.cjs",
-		"db-theatre": "./theatre.cjs",
-		"db-vouchers": "./vouchers.cjs"
+		"hudb-compat": "./compat.cjs",
+		"hudb-server": "./server.cjs",
+		"hudb-theatre": "./theatre.cjs",
+		"hudb-vouchers": "./vouchers.cjs"
 	},
 	"dependencies": {
 		"@e9x/cloudflare": "^1.0.5",
