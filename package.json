@@ -6,6 +6,12 @@
 		"build": "tsc",
 		"build:watch": "tsc -w"
 	},
+	"bin": {
+		"hu-compat": "./compat.js",
+		"hu-server": "./server.js",
+		"hu-theatre": "./theatre.js",
+		"hu-vouchers": "./vouchers.js"
+	},
 	"dependencies": {
 		"@e9x/cloudflare": "^1.0.5",
 		"commander": "^9.4.1",
