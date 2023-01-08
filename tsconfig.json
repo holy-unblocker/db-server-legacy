@@ -7,7 +7,9 @@
 		"types": ["node"],
 		"outDir": "dist",
 		"esModuleInterop": true,
-		"strict": true
+		"strict": true,
+		"baseUrl": "types",
+		"typeRoots": ["types"]
 	},
 	"include": ["src/**/*"]
 }
