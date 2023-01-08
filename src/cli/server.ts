@@ -18,7 +18,7 @@ function cors(request: FastifyRequest, reply: FastifyReply) {
 const program = new Command();
 
 program
-	.option('-p, --port <number>', 'Listening port', process.env.HOST || '80')
+	.option('-p, --port <number>', 'Listening port', process.env.PORT || '80')
 	.action(async ({ port }: { port: string }) => {
 		const client = await dbConnect();
 		console.log('DB open');
