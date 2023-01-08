@@ -7,10 +7,10 @@
 		"build:watch": "tsc -w"
 	},
 	"bin": {
-		"hu-compat": "./compat.js",
-		"hu-server": "./server.js",
-		"hu-theatre": "./theatre.js",
-		"hu-vouchers": "./vouchers.js"
+		"db-compat": "./compat.js",
+		"db-server": "./server.js",
+		"db-theatre": "./theatre.js",
+		"db-vouchers": "./vouchers.js"
 	},
 	"dependencies": {
 		"@e9x/cloudflare": "^1.0.5",
