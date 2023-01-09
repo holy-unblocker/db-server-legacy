@@ -11,25 +11,19 @@ export const FLOOR_TLD_PRICES: Record<string, number> = {
 	'.xyz': 3,
 };
 
-interface Voucher {
-	code: string;
-	tld: '.com' | '.org' | '.net' | '.us' | '.xyz'|string;
+export enum VoucherStatus {
+	valid = 0,
+	redeemed = 1,
+	invalid = 2,
 }
 
-function validateVoucher(voucher: Voucher) {
-	if ('code' in voucher) {
-		if (typeof voucher.code !== 'string') {
-			throw new TypeError('Voucher code was not a string');
-		}
-	}
-
-	if ('tld' in voucher) {
-		if (!tldTypes.includes(voucher.tld)) {
-			throw new TypeError(
-				`Voucher TLD was not one of the following: ${tldTypes}`
-			);
-		}
-	}
+export interface Voucher {
+	code: string;
+	tld: '.com' | '.org' | '.net' | '.us' | '.xyz' | string;
+	issued: Date;
+	status: VoucherStatus;
+	name?: string;
+	redeemed_on?: Date;
 }
 
 export default class VoucherWrapper {
@@ -37,23 +31,30 @@ export default class VoucherWrapper {
 	constructor(client: Client) {
 		this.client = client;
 	}
-	async show(code: string): Promise<Voucher> {
+	async show(code: string) {
 		const {
 			rows: [row],
-		} = await this.client.query('SELECT * FROM vouchers WHERE code = $1', [
-			code,
-		]);
+		} = await this.client.query<Voucher>(
+			'SELECT * FROM vouchers WHERE code = $1',
+			[code]
+		);
 
-		if (row === undefined) 
-			throw new RangeError(`Voucher with code ${code} doesn't exist.`);
-		
-
-		return row;
+		return row as Voucher | undefined;
 	}
-	async list(): Promise<Voucher[]> {
-		const { rows } = await this.client.query('SELECT * FROM vouchers;');
+	async list() {
+		const { rows } = await this.client.query<Voucher>(
+			'SELECT * FROM vouchers;'
+		);
 
 		return rows;
+	}
+	async redeem(code: string, name: string) {
+		const { rowCount } = await this.client.query(
+			'UPDATE vouchers SET status = 1, name = $1, redeemed_on = CURRENT_DATE WHERE code = $2 AND status = 0;',
+			[name, code]
+		);
+
+		return rowCount !== 0;
 	}
 	async delete(code: string) {
 		const { rowCount } = await this.client.query(
@@ -63,40 +64,12 @@ export default class VoucherWrapper {
 
 		return rowCount !== 0;
 	}
-	async create(tld: Voucher['tld']): Promise<Voucher> {
-		const voucher: Voucher = {
-			code: Math.random().toString(36).slice(2),
-			tld,
-		};
-
-		validateVoucher(voucher);
-
-		await this.client.query(
-			'INSERT INTO vouchers (code, tld) VALUES ($1, $2);',
-			[voucher.code, voucher.tld]
-		);
-
-		return voucher;
-	}
-	async update(code: string, tld?: string): Promise<Voucher> {
-		let voucher = await this.show(code);
-
-		if (tld === undefined) {
-			tld = voucher.tld;
-		}
-
-		voucher = {
-			code,
-			tld: <Voucher['tld']>tld,
-		};
-
-		validateVoucher(voucher);
-
-		await this.client.query('UPDATE vouchers SET tld = $1 WHERE code = $2', [
-			voucher.tld,
-			voucher.code,
-		]);
-
-		return voucher;
+	async create(tld: Voucher['tld']) {
+		return (
+			await this.client.query<Voucher>(
+				'INSERT INTO vouchers (code, tld) VALUES ($1, $2) RETURNING *;',
+				[Math.random().toString(36).slice(2), tld]
+			)
+		).rows[0];
 	}
 }

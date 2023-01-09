@@ -34,18 +34,6 @@ program
 	});
 
 program
-	.command('update')
-	.argument('code')
-	.argument(`<${tldTypes}>`)
-	.action(async (code, tld) => {
-		const client = await dbConnect();
-		const voucher = new VoucherWrapper(client);
-		await voucher.update(code, tld);
-		console.log('Updated voucher.');
-		await client.end();
-	});
-
-program
 	.command('show')
 	.argument('code')
 	.action(async (code) => {

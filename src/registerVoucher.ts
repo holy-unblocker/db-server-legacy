@@ -1,4 +1,7 @@
-import VoucherWrapper, { FLOOR_TLD_PRICES } from './VoucherWrapper.js';
+import VoucherWrapper, {
+	FLOOR_TLD_PRICES,
+	VoucherStatus,
+} from './VoucherWrapper.js';
 import { getDNS, getRules } from './cloudflareConsts.js';
 import {
 	cfEmail,
@@ -6,6 +9,7 @@ import {
 	nameserver1,
 	nameserver2,
 	namesiloKey,
+	skipPayment,
 } from './collectENV.js';
 import Cloudflare from '@e9x/cloudflare';
 import type { Zone } from '@e9x/cloudflare/v4';
@@ -15,7 +19,6 @@ import createError from 'http-errors';
 import fetch from 'node-fetch';
 import type { Client } from 'pg';
 
-const notExist = /Voucher with code .*? doesn't exist/;
 const validDomainName = /^[a-z0-9-]*$/i;
 
 interface NamesiloAPI {
@@ -35,7 +38,7 @@ export default async function registerVoucher(
 		client: Client;
 	}
 ) {
-	const voucher = new VoucherWrapper(client);
+	const voucherAPI = new VoucherWrapper(client);
 
 	const cf = new Cloudflare({
 		email: cfEmail,
@@ -65,21 +68,15 @@ export default async function registerVoucher(
 		async handler(request, reply) {
 			cors(request, reply);
 
-			try {
-				const { tld } = await voucher.show(
-					(request.params as { voucher: string }).voucher
-				);
+			const voucher = await voucherAPI.show(
+				(request.params as { voucher: string }).voucher
+			);
 
-				reply.send({
-					tld,
-				});
-			} catch (error) {
-				if (notExist.test(String(error))) {
-					throw new createError.NotFound('Invalid voucher.');
-				} else {
-					throw error;
-				}
-			}
+			if (!voucher) throw new createError.NotFound('Bad voucher code.');
+
+			reply.send({
+				tld: voucher.tld,
+			});
 		},
 	});
 
@@ -119,63 +116,75 @@ export default async function registerVoucher(
 			// vouchers are lowercase
 			voucherID = voucherID.toLowerCase();
 
-			try {
-				const { tld } = await voucher.show(voucherID);
+			const voucher = await voucherAPI.show(voucherID);
 
-				const floorPrice = FLOOR_TLD_PRICES[tld];
+			if (!voucher) throw new createError.BadRequest('Bad voucher code.');
 
-				if (isNaN(floorPrice)) {
-					const log = `Missing floor price for TLD ${tld}.`;
-					console.error(log);
-					throw new createError.InternalServerError(log);
-				}
-
-				// if not thrown, the code is valid
-
-				if (!validDomainName.test(domainID)) {
-					throw new createError.BadRequest('Invalid domain name.');
-				}
-
-				const host = `${domainID}${tld}`;
-
-				// AVABILITY
-				{
-					const request = await fetch(
-						'https://www.namesilo.com/api/checkRegisterAvailability?' +
-							new URLSearchParams({
-								version: '1',
-								type: 'xml',
-								key: namesiloKey,
-								domains: host,
-							})
+			switch (voucher.status) {
+				case VoucherStatus.invalid:
+					throw new createError.BadRequest('Invalid voucher.');
+				case VoucherStatus.redeemed:
+					throw new createError.BadRequest(
+						`Voucher already redeemed (on ${voucher.name}${voucher.tld}).`
 					);
+			}
+			const floorPrice = FLOOR_TLD_PRICES[voucher.tld];
 
-					const data: NamesiloAPI = xml.parse(await request.text());
+			if (isNaN(floorPrice)) {
+				const log = `Missing floor price for TLD ${voucher.tld}.`;
+				console.error(log);
+				throw new createError.InternalServerError(log);
+			}
 
-					if (!data.namesilo.reply.available) {
-						throw new createError.NotFound('Domain unavailable.');
-					}
+			// if not thrown, the code is valid
 
-					const price = Number(data.namesilo.reply.available.domain['@_price']);
+			if (!validDomainName.test(domainID)) {
+				throw new createError.BadRequest('Invalid domain name.');
+			}
 
-					if (isNaN(price) || price > floorPrice) {
-						console.log(`${host} costs ${price}, exceeds ${floorPrice}`);
-						throw new createError.BadRequest('Domain price exceeds limit.');
-					}
+			const host = `${domainID}${voucher.tld}`;
+
+			// AVABILITY
+			{
+				const request = await fetch(
+					'https://www.namesilo.com/api/checkRegisterAvailability?' +
+						new URLSearchParams({
+							version: '1',
+							type: 'xml',
+							key: namesiloKey,
+							domains: host,
+						})
+				);
+
+				const data: NamesiloAPI = xml.parse(await request.text());
+
+				if (!data.namesilo.reply.available) {
+					throw new createError.NotFound('Domain unavailable.');
 				}
 
-				console.log('Processing voucher', {
-					voucher: voucherID,
-					domain: domainID,
-					tld,
-				});
+				const price = Number(data.namesilo.reply.available.domain['@_price']);
 
-				if (!(await voucher.delete(voucherID))) {
-					throw new createError.InternalServerError('Race condition?');
+				if (isNaN(price) || price > floorPrice) {
+					console.log(`${host} costs ${price}, exceeds ${floorPrice}`);
+					throw new createError.BadRequest('Domain price exceeds limit.');
 				}
+			}
 
-				console.log(voucherID, 'Deleted voucher');
+			console.log('Processing voucher', {
+				voucher: voucherID,
+				domain: domainID,
+				tld: voucher.tld,
+			});
 
+			// race condition?
+			if (!(await voucherAPI.redeem(voucherID, domainID)))
+				throw new createError.InternalServerError('Unable to redeem domain');
+
+			console.log(voucherID, 'Redeemed voucher');
+
+			if (skipPayment) {
+				console.log('Skipping payment.');
+			} else {
 				// REGISTER
 				console.log(voucherID, 'Register', host);
 				{
@@ -189,7 +198,7 @@ export default async function registerVoucher(
 								ns1: nameserver1,
 								ns2: nameserver2,
 								years: '1',
-								...(tld === '.us'
+								...(voucher.tld === '.us'
 									? {
 											private: '0',
 											// may be subject to change if you're running your own DB server
@@ -275,18 +284,12 @@ export default async function registerVoucher(
 				}
 
 				console.log('REGISTERED', host);
-
-				reply.send({
-					tld,
-					host,
-				});
-			} catch (error) {
-				if (notExist.test(String(error))) {
-					throw new createError.NotFound('Invalid voucher.');
-				} else {
-					throw error;
-				}
 			}
+
+			reply.send({
+				tld: voucher.tld,
+				host,
+			});
 		},
 	});
 }

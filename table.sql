@@ -19,6 +19,15 @@ CREATE TABLE IF NOT EXISTS compat (
 );
 
 CREATE TABLE IF NOT EXISTS vouchers (
-	code TEXT PRIMARY KEY NOT NULL UNIQUE,
-	tld TEXT NOT NULL
+	code TEXT PRIMARY KEY NOT NULL UNIQUE,	
+	tld TEXT NOT NULL,
+	issued DATE NOT NULL DEFAULT CURRENT_DATE,
+	-- 0 - valid
+	-- 1 - redeemed
+	-- 2 - invalid (fraud, etc)
+	status INT NOT NULL DEFAULT 0,
+	-- the redeemed domain name
+	-- NULL if not redeemed
+	name TEXT,
+	redeemed_on DATE
 );
