@@ -11,6 +11,7 @@ import {
 	namesiloKey,
 	skipPayment,
 } from './collectENV.js';
+import t from './i18n.js';
 import Cloudflare from '@e9x/cloudflare';
 import type { Zone } from '@e9x/cloudflare/v4';
 import { XMLParser } from 'fast-xml-parser';
@@ -18,12 +19,6 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import createError from 'http-errors';
 import fetch from 'node-fetch';
 import type { Client } from 'pg';
-
-interface i18nError {
-	i18nError: true;
-	key: string;
-	data: Record<string, string>;
-}
 
 const validDomainName = /^[a-z0-9-]*$/i;
 
@@ -79,11 +74,7 @@ export default async function registerVoucher(
 			);
 
 			if (!voucher)
-				return reply.status(400).send({
-					i18nError: true,
-					key: 'voucher:error.reply.badCode',
-					data: {},
-				} as i18nError);
+				return reply.status(400).send(t('voucher:error.reply.badCode'));
 
 			reply.send({
 				tld: voucher.tld,
@@ -130,25 +121,19 @@ export default async function registerVoucher(
 			const voucher = await voucherAPI.show(voucherID);
 
 			if (!voucher)
-				return reply.status(400).send({
-					i18nError: true,
-					key: 'voucher:error.reply.badCode',
-					data: {},
-				} as i18nError);
+				return reply.status(400).send(t('voucher:error.reply.badCode'));
 
 			switch (voucher.status) {
 				case VoucherStatus.invalid:
-					return reply.status(403).send({
-						i18nError: true,
-						key: 'voucher:error.reply.invalidVoucher',
-						data: {},
-					} as i18nError);
+					return reply
+						.status(403)
+						.send(t('voucher:error.reply.invalidVoucher'));
 				case VoucherStatus.redeemed:
-					return reply.status(403).send({
-						i18nError: true,
-						key: 'voucher:error.reply.alreadyRedeemed',
-						data: { domain: `${voucher.name}${voucher.tld}` },
-					} as i18nError);
+					return reply.status(403).send(
+						t('voucher:error.reply.alreadyRedeemed', {
+							domain: `${voucher.name}${voucher.tld}`,
+						})
+					);
 			}
 			const floorPrice = FLOOR_TLD_PRICES[voucher.tld];
 
@@ -158,11 +143,7 @@ export default async function registerVoucher(
 			}
 
 			if (!validDomainName.test(domainID))
-				return reply.status(400).send({
-					i18nError: true,
-					key: 'voucher:error.reply.invalidName',
-					data: {},
-				} as i18nError);
+				return reply.status(400).send(t('voucher:error.reply.invalidName', {}));
 
 			const host = `${domainID}${voucher.tld}`;
 
@@ -181,21 +162,18 @@ export default async function registerVoucher(
 				const data: NamesiloAPI = xml.parse(await request.text());
 
 				if (!data.namesilo.reply.available)
-					return reply.status(400).send({
-						i18nError: true,
-						key: 'voucher:error.reply.unavailable',
-						data: {},
-					} as i18nError);
+					return reply.status(400).send(t('voucher:error.reply.unavailable'));
 
 				const price = Number(data.namesilo.reply.available.domain['@_price']);
 
 				if (isNaN(price) || price > floorPrice) {
 					console.log(`${host} costs ${price}, exceeds ${floorPrice}`);
-					return reply.status(400).send({
-						i18nError: true,
-						key: 'voucher:error.reply.exceedsLimit',
-						data: { price: `$${price}`, limit: `$${floorPrice}` },
-					} as i18nError);
+					return reply.status(400).send(
+						t('voucher:error.reply.exceedsLimit', {
+							price: `$${price}`,
+							limit: `$${floorPrice}`,
+						})
+					);
 				}
 			}
 
@@ -207,11 +185,7 @@ export default async function registerVoucher(
 
 			// race condition?
 			if (!(await voucherAPI.redeem(voucherID, domainID)))
-				return reply.status(500).send({
-					i18nError: true,
-					key: 'voucher:error.reply.updateVoucher',
-					data: {},
-				} as i18nError);
+				return reply.status(500).send(t('voucher:error.reply.updateVoucher'));
 
 			console.log(voucherID, 'Redeemed voucher');
 
@@ -247,11 +221,9 @@ export default async function registerVoucher(
 
 					if (data.namesilo.reply.detail !== 'success') {
 						console.error(data.namesilo.reply);
-						return reply.status(500).send({
-							i18nError: true,
-							key: 'voucher:error.reply.registerDomain',
-							data: {},
-						} as i18nError);
+						return reply
+							.status(500)
+							.send(t('voucher:error.reply.registerDomain'));
 					}
 				}
 
@@ -313,11 +285,7 @@ export default async function registerVoucher(
 					]);
 				} catch (err) {
 					console.error(err);
-					return reply.status(500).send({
-						i18nError: true,
-						key: 'voucher:error.reply.configureZone',
-						data: {},
-					} as i18nError);
+					return reply.status(500).send(t('voucher:error.reply.configureZone'));
 				}
 
 				console.log('REGISTERED', host);
