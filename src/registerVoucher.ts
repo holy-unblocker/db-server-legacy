@@ -19,6 +19,12 @@ import createError from 'http-errors';
 import fetch from 'node-fetch';
 import type { Client } from 'pg';
 
+interface i18nError {
+	i18nError: true;
+	key: string;
+	data: Record<string, string>;
+}
+
 const validDomainName = /^[a-z0-9-]*$/i;
 
 interface NamesiloAPI {
@@ -72,7 +78,12 @@ export default async function registerVoucher(
 				(request.params as { voucher: string }).voucher
 			);
 
-			if (!voucher) throw new createError.NotFound('Bad voucher code.');
+			if (!voucher)
+				return reply.status(400).send({
+					i18nError: true,
+					key: 'voucher:error.reply.badCode',
+					data: {},
+				} as i18nError);
 
 			reply.send({
 				tld: voucher.tld,
@@ -118,29 +129,40 @@ export default async function registerVoucher(
 
 			const voucher = await voucherAPI.show(voucherID);
 
-			if (!voucher) throw new createError.BadRequest('Bad voucher code.');
+			if (!voucher)
+				return reply.status(400).send({
+					i18nError: true,
+					key: 'voucher:error.reply.badCode',
+					data: {},
+				} as i18nError);
 
 			switch (voucher.status) {
 				case VoucherStatus.invalid:
-					throw new createError.BadRequest('Invalid voucher.');
+					return reply.status(403).send({
+						i18nError: true,
+						key: 'voucher:error.reply.invalidVoucher',
+						data: {},
+					} as i18nError);
 				case VoucherStatus.redeemed:
-					throw new createError.BadRequest(
-						`Voucher already redeemed (on ${voucher.name}${voucher.tld}).`
-					);
+					return reply.status(403).send({
+						i18nError: true,
+						key: 'voucher:error.reply.alreadyRedeemed',
+						data: { domain: `${voucher.name}${voucher.tld}` },
+					} as i18nError);
 			}
 			const floorPrice = FLOOR_TLD_PRICES[voucher.tld];
 
 			if (isNaN(floorPrice)) {
-				const log = `Missing floor price for TLD ${voucher.tld}.`;
-				console.error(log);
-				throw new createError.InternalServerError(log);
+				console.error(`Missing floor price for TLD ${voucher.tld}.`);
+				throw new createError.InternalServerError();
 			}
 
-			// if not thrown, the code is valid
-
-			if (!validDomainName.test(domainID)) {
-				throw new createError.BadRequest('Invalid domain name.');
-			}
+			if (!validDomainName.test(domainID))
+				return reply.status(400).send({
+					i18nError: true,
+					key: 'voucher:error.reply.invalidName',
+					data: {},
+				} as i18nError);
 
 			const host = `${domainID}${voucher.tld}`;
 
@@ -158,15 +180,22 @@ export default async function registerVoucher(
 
 				const data: NamesiloAPI = xml.parse(await request.text());
 
-				if (!data.namesilo.reply.available) {
-					throw new createError.NotFound('Domain unavailable.');
-				}
+				if (!data.namesilo.reply.available)
+					return reply.status(400).send({
+						i18nError: true,
+						key: 'voucher:error.reply.unavailable',
+						data: {},
+					} as i18nError);
 
 				const price = Number(data.namesilo.reply.available.domain['@_price']);
 
 				if (isNaN(price) || price > floorPrice) {
 					console.log(`${host} costs ${price}, exceeds ${floorPrice}`);
-					throw new createError.BadRequest('Domain price exceeds limit.');
+					return reply.status(400).send({
+						i18nError: true,
+						key: 'voucher:error.reply.exceedsLimit',
+						data: { price: `$${price}`, limit: `$${floorPrice}` },
+					} as i18nError);
 				}
 			}
 
@@ -178,7 +207,11 @@ export default async function registerVoucher(
 
 			// race condition?
 			if (!(await voucherAPI.redeem(voucherID, domainID)))
-				throw new createError.InternalServerError('Unable to redeem domain');
+				return reply.status(500).send({
+					i18nError: true,
+					key: 'voucher:error.reply.updateVoucher',
+					data: {},
+				} as i18nError);
 
 			console.log(voucherID, 'Redeemed voucher');
 
@@ -214,9 +247,11 @@ export default async function registerVoucher(
 
 					if (data.namesilo.reply.detail !== 'success') {
 						console.error(data.namesilo.reply);
-						throw new createError.InternalServerError(
-							'Unable to register domain.'
-						);
+						return reply.status(500).send({
+							i18nError: true,
+							key: 'voucher:error.reply.registerDomain',
+							data: {},
+						} as i18nError);
 					}
 				}
 
@@ -278,9 +313,11 @@ export default async function registerVoucher(
 					]);
 				} catch (err) {
 					console.error(err);
-					throw new createError.InternalServerError(
-						'Cannot configure zone on Cloudflare.'
-					);
+					return reply.status(500).send({
+						i18nError: true,
+						key: 'voucher:error.reply.configureZone',
+						data: {},
+					} as i18nError);
 				}
 
 				console.log('REGISTERED', host);
