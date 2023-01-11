@@ -32,21 +32,15 @@ export default class VoucherWrapper {
 		this.client = client;
 	}
 	async show(code: string) {
-		const {
-			rows: [row],
-		} = await this.client.query<Voucher>(
-			'SELECT * FROM vouchers WHERE code = $1',
-			[code]
-		);
-
-		return row as Voucher | undefined;
+		return (
+			await this.client.query<Voucher>(
+				'SELECT * FROM vouchers WHERE code = $1',
+				[code]
+			)
+		).rows[0] as Voucher | undefined;
 	}
 	async list() {
-		const { rows } = await this.client.query<Voucher>(
-			'SELECT * FROM vouchers;'
-		);
-
-		return rows;
+		return (await this.client.query<Voucher>('SELECT * FROM vouchers;')).rows;
 	}
 	async redeem(code: string, name: string) {
 		const { rowCount } = await this.client.query(

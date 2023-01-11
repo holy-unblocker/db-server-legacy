@@ -27,7 +27,7 @@ export interface Control {
 	label: string;
 }
 
-export interface TheatreEntry {
+interface TheatreRow {
 	type:
 		| 'emulator.nes'
 		| 'emulator.gba'
@@ -37,26 +37,26 @@ export interface TheatreEntry {
 		| 'embed'
 		| 'proxy'
 		| string;
-	controls: Control[];
-	category: string[];
+	controls: string;
+	category: string;
 	id: string;
 	name: string;
 	plays: number;
 	src: string;
 }
 
-export function rowTo(entry: any) {
-	const result = { ...entry };
+export interface TheatreEntry
+	extends Omit<Omit<TheatreRow, 'controls'>, 'category'> {
+	controls: Control[];
+	category: string[];
+}
 
-	if ('controls' in result) {
-		result.controls = JSON.parse(entry.controls);
-	}
-
-	if ('category' in result) {
-		result.category = entry.category.split(',');
-	}
-
-	return result;
+export function rowTo(entry: TheatreRow) {
+	return {
+		...entry,
+		controls: JSON.parse(entry.controls),
+		category: entry.category.split(','),
+	} as TheatreEntry;
 }
 
 function validate(entry: TheatreEntry): entry is TheatreEntry {
@@ -114,7 +114,7 @@ export default class TheatreWrapper {
 	constructor(client: Client) {
 		this.client = client;
 	}
-	async indexID(index: number): Promise<string> {
+	async indexID(index: number) {
 		const {
 			rows: [result],
 		} = await this.client.query('SELECT id FROM theatre WHERE index = $1;', [
@@ -127,21 +127,17 @@ export default class TheatreWrapper {
 
 		return result.id;
 	}
-	async show(id: string): Promise<TheatreEntry> {
-		const {
-			rows: [row],
-		} = await this.client.query('SELECT * FROM theatre WHERE id = $1', [id]);
+	async show(id: string) {
+		const row = (
+			await this.client.query<TheatreRow>(
+				'SELECT * FROM theatre WHERE id = $1',
+				[id]
+			)
+		).rows[0];
 
-		if (row === undefined) {
-			throw new RangeError(`Entry with ID ${id} doesn't exist.`);
-		}
-
-		return rowTo(row);
+		if (row) return rowTo(row);
 	}
-	async list(options: ListOptions = {}): Promise<{
-		total: number;
-		entries: TheatreEntry[];
-	}> {
+	async list(options: ListOptions = {}) {
 		// 0: select, 1: condition, 3: order, 3: limit, 4: offset
 		const select = [];
 		const conditions = [];
@@ -213,7 +209,10 @@ export default class TheatreWrapper {
 				.filter(Boolean)
 				.join(' ') + ';';
 
-		const { rows } = await this.client.query(query, vars);
+		const { rows } = await this.client.query<TheatreRow & { total: string }>(
+			query,
+			vars
+		);
 
 		const total = parseInt(rows[0]?.total);
 
@@ -224,13 +223,11 @@ export default class TheatreWrapper {
 			entries,
 		};
 	}
-	async delete(id: string): Promise<boolean> {
-		const { rowCount } = await this.client.query(
-			'DELETE FROM theatre WHERE id = $1;',
-			[id]
+	async delete(id: string) {
+		return (
+			(await this.client.query('DELETE FROM theatre WHERE id = $1;', [id]))
+				.rowCount !== 0
 		);
-
-		return rowCount !== 0;
 	}
 	async create(
 		name: TheatreEntry['name'],
@@ -238,7 +235,7 @@ export default class TheatreWrapper {
 		src: TheatreEntry['src'],
 		category: TheatreEntry['category'],
 		controls: TheatreEntry['controls']
-	): Promise<TheatreEntry> {
+	) {
 		const entry = {
 			id: Math.random().toString(36).slice(2),
 			name,
@@ -276,6 +273,8 @@ export default class TheatreWrapper {
 	) {
 		let entry = await this.show(id);
 
+		if (!entry) return false;
+
 		if (name === undefined) name = entry.name;
 
 		if (type === undefined) type = entry.type;
@@ -300,25 +299,29 @@ export default class TheatreWrapper {
 
 		const vars: unknown[] = [];
 
-		await this.client.query(
-			`UPDATE theatre SET name = $${vars.push(entry.name)}, type = $${vars.push(
-				entry.type
-			)}, category = $${vars.push(
-				entry.category.join(',')
-			)}, src = $${vars.push(entry.src)}, controls = $${vars.push(
-				JSON.stringify(entry.controls)
-			)} WHERE id = $${vars.push(entry.id)}`,
-			vars
+		return rowTo(
+			(
+				await this.client.query<TheatreRow>(
+					`UPDATE theatre SET name = $${vars.push(
+						entry.name
+					)}, type = $${vars.push(entry.type)}, category = $${vars.push(
+						entry.category.join(',')
+					)}, src = $${vars.push(entry.src)}, controls = $${vars.push(
+						JSON.stringify(entry.controls)
+					)} WHERE id = $${vars.push(entry.id)} RETURNING *;`,
+					vars
+				)
+			).rows[0]
 		);
-
-		return entry;
 	}
 	async countPlay(id: string): Promise<boolean> {
-		const { rowCount } = await this.client.query(
-			`UPDATE theatre SET plays = plays + 1 WHERE id = $1`,
-			[id]
+		return (
+			(
+				await this.client.query(
+					`UPDATE theatre SET plays = plays + 1 WHERE id = $1`,
+					[id]
+				)
+			).rowCount !== 0
 		);
-
-		return rowCount !== 0;
 	}
 }

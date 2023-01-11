@@ -4,8 +4,6 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import createError from 'http-errors';
 import type { Client } from 'pg';
 
-const notExist = /Proxy with host .*? doesn't exist/;
-
 export default async function registerCompat(
 	fastify: FastifyInstance,
 	{
@@ -16,7 +14,7 @@ export default async function registerCompat(
 		client: Client;
 	}
 ) {
-	const compat = new CompatWrapper(client);
+	const compatAPI = new CompatWrapper(client);
 
 	fastify.route({
 		url: '/:host/',
@@ -32,13 +30,11 @@ export default async function registerCompat(
 		async handler(request, reply) {
 			cors(request, reply);
 			const parsed = parse((request.params as { host: string }).host);
+			const compat = await compatAPI.show(`${parsed.sld}.${parsed.tld}`);
 
-			try {
-				reply.send(await compat.show(`${parsed.sld}.${parsed.tld}`));
-			} catch (error) {
-				if (notExist.test(String(error))) throw new createError.NotFound();
-				else throw error;
-			}
+			if (!compat) throw new createError.NotFound();
+
+			reply.send(compat);
 		},
 	});
 }

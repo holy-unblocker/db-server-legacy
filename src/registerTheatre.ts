@@ -4,8 +4,6 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import createError from 'http-errors';
 import type { Client } from 'pg';
 
-const notExist = /Entry with ID .*? doesn't exist/;
-
 export default async function registerTheatre(
 	fastify: FastifyInstance,
 	{
@@ -16,7 +14,7 @@ export default async function registerTheatre(
 		client: Client;
 	}
 ) {
-	const theatre = new TheatreWrapper(client);
+	const theatreAPI = new TheatreWrapper(client);
 
 	fastify.route({
 		url: '/',
@@ -38,7 +36,7 @@ export default async function registerTheatre(
 		async handler(request, reply) {
 			cors(request, reply);
 
-			const data = await theatre.list(request.query as ListOptions);
+			const data = await theatreAPI.list(request.query as ListOptions);
 
 			const send = {
 				entries: [] as {
@@ -65,16 +63,13 @@ export default async function registerTheatre(
 		method: 'GET',
 		async handler(request, reply) {
 			cors(request, reply);
+			const entry = await theatreAPI.show(
+				(request.params as { id: string }).id
+			);
 
-			try {
-				reply.send(await theatre.show((request.params as { id: string }).id));
-			} catch (error) {
-				if (notExist.test(String(error))) {
-					throw new createError.NotFound();
-				} else {
-					throw error;
-				}
-			}
+			if (!entry) throw new createError.NotFound();
+
+			reply.send(entry);
 		},
 	});
 
@@ -84,16 +79,8 @@ export default async function registerTheatre(
 		async handler(request, reply) {
 			cors(request, reply);
 
-			try {
-				await theatre.countPlay((request.params as { id: string }).id);
-				reply.send({});
-			} catch (error) {
-				if (notExist.test(String(error))) {
-					throw new createError.NotFound();
-				} else {
-					throw error;
-				}
-			}
+			if (!(await theatreAPI.countPlay((request.params as { id: string }).id)))
+				throw new createError.BadRequest();
 		},
 	});
 }

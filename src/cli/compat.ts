@@ -9,7 +9,7 @@ program
 	.command('create')
 	.argument('host')
 	.argument('proxy', `<${proxyTypes}>`)
-	.action(async (host, proxy) => {
+	.action(async (host: string, proxy: string) => {
 		const client = await dbConnect();
 		const compat = new CompatWrapper(client);
 		await compat.create(host, proxy);
@@ -42,7 +42,7 @@ program
 program
 	.command('delete')
 	.argument('host')
-	.action(async (host) => {
+	.action(async (host: string) => {
 		const client = await dbConnect();
 		const compat = new CompatWrapper(client);
 		const deleted = await compat.delete(host);
