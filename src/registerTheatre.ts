@@ -81,6 +81,8 @@ export default async function registerTheatre(
 
 			if (!(await theatreAPI.countPlay((request.params as { id: string }).id)))
 				throw new createError.BadRequest();
+
+			return {};
 		},
 	});
 }
