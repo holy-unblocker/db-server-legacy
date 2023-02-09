@@ -10,8 +10,7 @@
 	"bin": {
 		"hudb-compat": "./compat.cjs",
 		"hudb-server": "./server.cjs",
-		"hudb-theatre": "./theatre.cjs",
-		"hudb-vouchers": "./vouchers.cjs"
+		"hudb-theatre": "./theatre.cjs"
 	},
 	"dependencies": {
 		"@e9x/cloudflare": "^1.0.5",

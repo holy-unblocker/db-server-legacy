@@ -2,7 +2,6 @@ import '../collectENV.js';
 import dbConnect from '../dbConnect.js';
 import registerCompat from '../registerCompat.js';
 import registerTheatre from '../registerTheatre.js';
-import registerVoucher from '../registerVoucher.js';
 import { Command } from 'commander';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import fastify from 'fastify';
@@ -46,12 +45,6 @@ program
 
 		server.register(registerCompat, {
 			prefix: '/compat',
-			client,
-			cors,
-		});
-
-		server.register(registerVoucher, {
-			prefix: '/vouchers',
 			client,
 			cors,
 		});

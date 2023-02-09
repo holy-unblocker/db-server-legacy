@@ -1,5 +1,0 @@
-ALTER TABLE vouchers
-	ADD issued DATE NOT NULL DEFAULT CURRENT_DATE,
-	ADD status INT NOT NULL DEFAULT 0,
-	ADD name TEXT,
-	ADD redeemed_on DATE;
